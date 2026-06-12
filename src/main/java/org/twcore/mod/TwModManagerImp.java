@@ -57,10 +57,7 @@ public final class TwModManagerImp implements TwModManager {
 
             int required = minRequiredVersions.getOrDefault(modId, 1);
             if (modVersion < required) {
-                // 使用可翻译文本抛出异常
-                throw TwModManagerException.of(
-                        modId, modVersion, required
-                );
+                throw TwModManagerException.of(modId, modVersion, required);
             }
 
             registeredMods.put(modId, modVersion);

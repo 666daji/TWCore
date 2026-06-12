@@ -5,6 +5,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.twcore.api.TwCoreRegistrar;
+import org.twcore.api.TwModManager;
 import org.twcore.config.ConfigManager;
 import org.twcore.content.ContentCategories;
 import org.twcore.registry.RegistryInit;
@@ -15,7 +16,8 @@ public class TWCore implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // 注册初始化
+        // 对本身的注册
+        register();
         RegistryInit.init();
 
         // 调用所有子模组注册方法
@@ -23,10 +25,14 @@ public class TWCore implements ModInitializer {
                 .getEntrypointContainers("tw-core:register", TwCoreRegistrar.class)
                 .forEach(container -> container.getEntrypoint().register());
 
-        // 完成初始化逻辑
+        // 初始化逻辑
         ConfigManager.loadCommon();
         ContentCategories.init();
 
         LOGGER.info("TW`s Core is initializing!");
+    }
+
+    private void register() {
+        TwModManager.IMPL.register(MOD_ID, 1);
     }
 }

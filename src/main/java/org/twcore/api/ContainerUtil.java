@@ -183,7 +183,7 @@ public final class ContainerUtil {
     @Nullable
     public static Content extractContent(@NotNull ItemStack stack) {
         Optional<ContainerStack> result = analyze(stack);
-        return result.map(ContainerStack::getContent).orElse(null);
+        return result.map(ContainerStack::content).orElse(null);
     }
 
     /**
@@ -195,6 +195,6 @@ public final class ContainerUtil {
     @Nullable
     public static ContainerType getContainerType(@NotNull ItemStack stack) {
         Optional<ContainerStack> result = analyze(stack);
-        return result.map(ContainerStack::getContainer).orElse(null);
+        return result.map(ContainerStack::container).orElse(null);
     }
 }

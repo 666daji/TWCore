@@ -9,22 +9,61 @@ import org.twcore.content.Content;
 import java.util.Objects;
 
 /**
- * 容器-内容物-物品堆栈绑定对象。
+ * 容器-内容物系统的<b>核心操作对象</b>。
  * <p>
- * 表示一个物品堆栈被识别为特定的容器类型和内容物类型的组合，
- * 同时保留原始的 ItemStack 引用。
- * 提供一系列实例方法来查询和操作该容器。
+ * 一个 {@code ContainerStack} 实例代表对一个具体物品堆栈的完整分析结果，
+ * 它绑定了：
+ * <ul>
+ *     <li>一个 {@link ContainerType 容器类型} – 物品属于哪种容器（碗、瓶等）</li>
+ *     <li>一个可选的 {@link Content 内容物} – 容器当前装载了什么（可为 {@code null} 表示空）</li>
+ *     <li>原始的 {@link ItemStack} – 被分析的物品堆栈本身</li>
+ * </ul>
+ *
+ * <h2>核心职责</h2>
+ * <p>
+ * 在旧设计中，操作一个“容器物品”需要反复调用 {@link ContainerUtil} 中的静态方法，
+ * 流程分散且需多次传递同一个物品堆栈。重构后，大部分实例化操作被收拢到 {@code ContainerStack} 中，
+ * 使得调用者可以<b>以一个对象为中心完成所有交互</b>。
  * </p>
+ * <p>
+ * 例如，原本需要：
+ * <pre>{@code
+ * if (ContainerUtil.isEmptyContainer(stack)) { ... }
+ * if (ContainerUtil.providesContent(stack, content)) { ... }
+ * ItemStack newStack = ContainerUtil.replaceContent(stack, newContent);
+ * }</pre>
+ * 现在变为：
+ * <pre>{@code
+ * ContainerStack cs = ContainerUtil.analyze(stack).orElseThrow();
+ * if (cs.isEmptyContainer()) { ... }
+ * if (cs.providesContent(content)) { ... }
+ * ItemStack newStack = cs.replaceContent(newContent);
+ * }</pre>
+ * </p>
+ *
+ * <h2>对象来源</h2>
+ * <p>
+ * 通常情况下，应通过 {@link ContainerUtil#analyze(ItemStack)} 获取 {@code ContainerStack} 实例。
+ * 也可以直接调用构造器，但必须确保传入的容器类型与物品堆栈确实匹配。
+ * </p>
+ *
+ * <h2>不可变性</h2>
+ * <p>
+ * 本对象本身是不可变的（所有字段均为 final）。但请注意，
+ * 原始 {@link ItemStack} 引用被保留，外部如果修改该堆栈，可能会影响此对象内部状态的一致性。
+ * 推荐在分析前复制堆栈，或不要长期持有 {@code ContainerStack}。
+ * 所有“修改”操作（如 {@link #replaceContent(Content)}）都不会改变本对象，
+ * 而是返回新的 {@link ItemStack}。
+ * </p>
+ *
+ * @see ContainerUtil
+ * @see ContainerType
+ * @see Content
  */
-public final class ContainerStack {
-    private final ContainerType container;
-    @Nullable
-    private final Content content;
-    private final ItemStack originalStack;
-
+public record ContainerStack(ContainerType container, @Nullable Content content, ItemStack originalStack) {
     /**
-     * @param container    容器类型，不能为null
-     * @param content      内容物类型，可以为null（空容器）
+     * @param container     容器类型，不能为null
+     * @param content       内容物类型，可以为null（空容器）
      * @param originalStack 原始物品堆栈，不能为null
      */
     public ContainerStack(@NotNull ContainerType container,
@@ -33,21 +72,6 @@ public final class ContainerStack {
         this.container = Objects.requireNonNull(container, "Container cannot be null");
         this.content = content;
         this.originalStack = Objects.requireNonNull(originalStack, "Original stack cannot be null");
-    }
-
-    @NotNull
-    public ContainerType getContainer() {
-        return container;
-    }
-
-    @Nullable
-    public Content getContent() {
-        return content;
-    }
-
-    @NotNull
-    public ItemStack getOriginalStack() {
-        return originalStack;
     }
 
     public boolean isEmpty() {
