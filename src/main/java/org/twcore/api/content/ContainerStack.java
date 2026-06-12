@@ -1,4 +1,4 @@
-package org.twcore.api;
+package org.twcore.api.content;
 
 import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -142,7 +142,7 @@ public record ContainerStack(ContainerType container, @Nullable Content content,
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "ContainerStack{" +
                 "container=" + container +
                 ", content=" + (content != null ? content : "null") +

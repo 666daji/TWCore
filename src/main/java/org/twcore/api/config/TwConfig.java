@@ -1,5 +1,7 @@
-package org.twcore.api;
+package org.twcore.api.config;
 
+import org.twcore.api.TwCoreClientRegistrar;
+import org.twcore.api.TwModManager;
 import org.twcore.config.ConfigInfluencer;
 import org.twcore.config.ConfigManager;
 import org.twcore.config.ConfigSide;

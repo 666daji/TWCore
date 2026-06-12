@@ -1,4 +1,4 @@
-package org.twcore.api;
+package org.twcore.api.content;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;

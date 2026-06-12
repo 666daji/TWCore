@@ -1,5 +1,6 @@
 package org.twcore.api;
 
+import org.twcore.api.config.TwConfig;
 import org.twcore.config.ConfigType;
 
 /**
