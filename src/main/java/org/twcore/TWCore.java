@@ -19,7 +19,6 @@ public class TWCore implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // 对本身的注册
         register();
         RegistryInit.init();
 
