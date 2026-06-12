@@ -19,7 +19,7 @@ public class TWCore implements ModInitializer {
                 .forEach(container -> container.getEntrypoint().register());
 
         // 完成初始化逻辑
-        ConfigManager.loadAll();
+        ConfigManager.loadCommon();
 
         LOGGER.info("TW`s Core is initializing!");
     }

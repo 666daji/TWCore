@@ -17,10 +17,10 @@ import org.twcore.config.ConfigType;
  * <ul>
  *     <li>调用 {@link TwModManager#register(String, int)}
  *         完成模组自身的注册与版本等级声明；</li>
- *     <li>通过 {@link TwConfig.forMod(modId)} 获取配置构造器，
+ *     <li>通过 {@link TwConfig#forMod(String)} 获取配置构造器，
  *         注册一个或多个 {@link ConfigType}；</li>
  *     <li>通过配置构造器向其他模组的配置提供默认值修改器
- *         （{@link addDefaultOverride}），实现跨模组默认值叠加；</li>
+ *         （{@link TwConfig#addDefaultOverride}），实现跨模组默认值叠加；</li>
  *     <li>未来可能扩展的其他注册项（如网络频道、命令、数据组件等）。</li>
  * </ul>
  * 将所有注册逻辑集中于此方法内，可以确保在 Core 执行统一加载前，
@@ -79,6 +79,29 @@ import org.twcore.config.ConfigType;
  * 只会被调用一次。严禁在此方法内执行耗时操作或引发异常未处理。
  * 若注册失败（如版本等级不满足），应通过抛出异常终止启动，
  * 这与 {@link TwModManager#register(String, int)} 的约定一致。
+ * </p>
+ *
+ * <h2>关于跨模组信息访问的重要约定</h2>
+ * <p>
+ * 尽管在客户端注册阶段（{@code TwCoreClientRegistrar}）可以安全访问
+ * {@link TwModManager} 中其他模组的注册信息（因为其时序在所有双端注册之后），
+ * 但为了保持框架的<b>一致性</b>，<b>强烈建议在任何注册逻辑中都不要依赖其他模组
+ * 是否已经注册</b>。
+ * </p>
+ * <p>
+ * 原因如下：
+ * <ul>
+ *     <li>子模组在双端注册阶段（{@code TwCoreRegistrar}）的调用顺序是不确定的，
+ *         因此在该阶段通过 {@code TwModManager.isRegistered()} 查询其他模组
+ *         是不安全的，可能得到不一致的结果。</li>
+ *     <li>统一采用“不依赖他人”的约定，可以避免开发者在不同注册接口之间
+ *         产生混淆，降低因平台差异导致的隐性 Bug。</li>
+ *     <li>若确实需要跨模组协作（如为其他模组的配置添加默认值），
+ *         应使用 {@code TwConfig.addDefaultOverride()} 提供影响器，
+ *         由目标模组在配置加载时统一处理——这是专门为顺序无关的
+ *         软依赖设计的机制。</li>
+ * </ul>
+ * 简而言之：<b>注册时只关心自己，协作通过影响器完成。</b>
  * </p>
  *
  * @see TwModManager
