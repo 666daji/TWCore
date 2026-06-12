@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "tw_core",
+  "id": "tw-core",
   "version": "${version}",
   "name": "TW`s Core",
   "description": "Tenacious Wonder ",
