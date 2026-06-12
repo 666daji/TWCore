@@ -1,6 +1,5 @@
 package org.twcore.api;
 
-import net.minecraft.text.Text;
 import org.twcore.mod.TwModManagerException;
 import org.twcore.mod.TwModManagerImp;
 
@@ -29,12 +28,6 @@ import java.util.Map;
  *
  * <h2>线程安全</h2>
  * 此接口的所有实现都必须保证线程安全。TW Core 默认实现使用读写锁。
- *
- * <h2>错误信息与本地化</h2>
- * 注册失败时抛出 {@link TwModManagerException}，该异常携带一个
- * {@link Text} 对象，其中包含可翻译的文本。模组作者应使用异常中的
- * {@link TwModManagerException#getMessageText()} 来向玩家展示错误，
- * 以便支持多语言（需要在语言文件中提供对应翻译键）。
  *
  * @see TwModManagerImp
  */
