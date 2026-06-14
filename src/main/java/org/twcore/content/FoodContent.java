@@ -1,6 +1,6 @@
 package org.twcore.content;
 
-import net.minecraft.item.FoodComponent;
+import net.minecraft.component.type.FoodComponent;
 
 /**
  * 表示可以食用的内容物

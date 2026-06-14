@@ -15,7 +15,7 @@ public class TWRegistries {
     public static Registry<ContainerType> CONTAINER_TYPE = of("container_type");
 
     public static <T> Registry<T> of(String id) {
-        RegistryKey<Registry<T>> key = RegistryKey.ofRegistry(new Identifier(TWCore.MOD_ID, id));
+        RegistryKey<Registry<T>> key = RegistryKey.ofRegistry(Identifier.of(TWCore.MOD_ID, id));
 
         return FabricRegistryBuilder.createSimple(key)
                 .attribute(RegistryAttribute.SYNCED)

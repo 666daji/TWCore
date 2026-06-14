@@ -22,7 +22,7 @@ public class ContainerTypes {
                     .setUseSound(SoundEvents.ITEM_BUCKET_EMPTY)));
 
     public static ContainerType registerContainerType(String name, ContainerType containerType) {
-        return Registry.register(TWRegistries.CONTAINER_TYPE, new Identifier(TWCore.MOD_ID, name), containerType);
+        return Registry.register(TWRegistries.CONTAINER_TYPE, Identifier.of(TWCore.MOD_ID, name), containerType);
     }
 
     public static void registerAll() {

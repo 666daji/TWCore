@@ -10,7 +10,7 @@ public class ModSounds {
     public static final SoundEvent SOUP_FILL = registerSoundEvent("soup_fill");
 
     private static SoundEvent registerSoundEvent(String name) {
-        Identifier id = new Identifier(TWCore.MOD_ID, name);
+        Identifier id = Identifier.of(TWCore.MOD_ID, name);
         return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
     }
 

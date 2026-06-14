@@ -1,6 +1,6 @@
 package org.twcore.registry;
 
-import net.minecraft.item.FoodComponents;
+import net.minecraft.component.type.FoodComponents;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import org.twcore.TWCore;
@@ -34,7 +34,7 @@ public class Contents {
     public static final Content HONEY = registerContent("honey", new Content(SYRUP));
 
     public static Content registerContent(String name, Content content) {
-        return Registry.register(TWRegistries.CONTENT, new Identifier(TWCore.MOD_ID, name), content);
+        return Registry.register(TWRegistries.CONTENT, Identifier.of(TWCore.MOD_ID, name), content);
     }
 
     public static void registerAll() {}
