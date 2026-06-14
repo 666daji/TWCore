@@ -82,7 +82,7 @@ public final class ConfigManager {
     // 运行时数据缓存，加载后存放
     private static final Map<ModConfigKey, Object> dataCache = new ConcurrentHashMap<>();
     // 影响器待处理池：目标配置键 → 影响器列表
-    private static final Map<ModConfigKey, List<ConfigInfluencer>> pendingInfluencers = new HashMap<>();
+    private static final Map<ModConfigKey, List<ConfigInfluencer<?>>> pendingInfluencers = new HashMap<>();
 
     private ConfigManager() {}
 
@@ -112,7 +112,7 @@ public final class ConfigManager {
      * @param configName  目标配置名称
      * @param influencer  影响器
      */
-    public static synchronized void addInfluencer(String targetModId, String configName, ConfigInfluencer influencer) {
+    public static synchronized void addInfluencer(String targetModId, String configName, ConfigInfluencer<?> influencer) {
         ModConfigKey key = new ModConfigKey(targetModId, configName);
         pendingInfluencers.computeIfAbsent(key, k -> new ArrayList<>()).add(influencer);
     }
@@ -167,10 +167,10 @@ public final class ConfigManager {
         Path file = BASE_DIR.resolve(key.modId()).resolve(key.configName() + ".json");
 
         // 1. 从待处理池取出当前配置的所有影响器（可能为空）
-        List<ConfigInfluencer> rawInfluencers = pendingInfluencers.getOrDefault(key, Collections.emptyList());
+        List<ConfigInfluencer<?>> rawInfluencers = pendingInfluencers.getOrDefault(key, Collections.emptyList());
 
         // 2. 筛选有效影响器：来源模组必须已在 TwModManager 中注册
-        List<ConfigInfluencer> validInfluencers = rawInfluencers.stream()
+        List<ConfigInfluencer<?>> validInfluencers = rawInfluencers.stream()
                 .filter(inf -> TwModManager.IMPL.isRegistered(inf.sourceModId()))
                 .toList();
 

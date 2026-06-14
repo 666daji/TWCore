@@ -19,8 +19,8 @@ public class TWCore implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        register();
         RegistryInit.init();
+        register();
 
         // 调用所有子模组注册方法
         FabricLoader.getInstance()
