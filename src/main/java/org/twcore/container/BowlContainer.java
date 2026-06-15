@@ -1,6 +1,6 @@
 package org.twcore.container;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.twcore.content.Content;
 import org.twcore.registry.Contents;
 
@@ -18,7 +18,7 @@ public class BowlContainer extends AbstractMappedContainer {
     @Override
     public boolean matches(ItemStack stack) {
         // 检查是否是碗或已知的汤类物品
-        return stack.isOf(getEmptyItem()) || supportsItem(stack.getItem());
+        return stack.is(getEmptyItem()) || supportsItem(stack.getItem());
     }
 
     @Override

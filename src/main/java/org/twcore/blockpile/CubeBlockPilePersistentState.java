@@ -1,14 +1,14 @@
 package org.twcore.blockpile;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 方块堆数据的持久化存储
  */
-public class CubeBlockPilePersistentState extends PersistentState {
+public class CubeBlockPilePersistentState extends SavedData {
     private static final Logger LOGGER = TWCore.LOGGER;
     private static final String PERSISTENT_ID = "cubeBlockPiles";
 
@@ -32,7 +32,7 @@ public class CubeBlockPilePersistentState extends PersistentState {
      * 临时存储的方块堆数据
      * @see CubeBlockPileManager
      */
-    private final Map<Identifier, Map<BlockPos, CubeBlockPileData>> worldData = new ConcurrentHashMap<>();
+    private final Map<ResourceLocation, Map<BlockPos, CubeBlockPileData>> worldData = new ConcurrentHashMap<>();
 
     public CubeBlockPilePersistentState() {
         super();
@@ -43,21 +43,21 @@ public class CubeBlockPilePersistentState extends PersistentState {
      */
     public record CubeBlockPileData(BlockPos masterPos, String baseBlockId, BlockPos start, int width, int height,
                                     int depth) {
-        public @NotNull NbtCompound toNbt() {
-                NbtCompound nbt = new NbtCompound();
-                nbt.put("masterPos", NbtHelper.fromBlockPos(masterPos));
+        public @NotNull CompoundTag toNbt() {
+                CompoundTag nbt = new CompoundTag();
+                nbt.put("masterPos", NbtUtils.writeBlockPos(masterPos));
                 nbt.putString("baseBlockId", baseBlockId);
-                nbt.put("start", NbtHelper.fromBlockPos(start));
+                nbt.put("start", NbtUtils.writeBlockPos(start));
                 nbt.putInt("width", width);
                 nbt.putInt("height", height);
                 nbt.putInt("depth", depth);
                 return nbt;
             }
 
-            public static @NotNull CubeBlockPilePersistentState.CubeBlockPileData fromNbt(@NotNull NbtCompound nbt) {
-                BlockPos masterPos = NbtHelper.toBlockPos(nbt.getCompound("masterPos"));
+            public static @NotNull CubeBlockPilePersistentState.CubeBlockPileData fromNbt(@NotNull CompoundTag nbt) {
+                BlockPos masterPos = NbtUtils.readBlockPos(nbt.getCompound("masterPos"));
                 String baseBlockId = nbt.getString("baseBlockId");
-                BlockPos start = NbtHelper.toBlockPos(nbt.getCompound("start"));
+                BlockPos start = NbtUtils.readBlockPos(nbt.getCompound("start"));
                 int width = nbt.getInt("width");
                 int height = nbt.getInt("height");
                 int depth = nbt.getInt("depth");
@@ -68,14 +68,14 @@ public class CubeBlockPilePersistentState extends PersistentState {
     /**
      * 添加方块堆数据
      */
-    public void addCubeBlockPile(@NotNull World world, @NotNull CubeBlockPile cubeBlockPile) {
-        Identifier worldId = world.getRegistryKey().getValue();
+    public void addCubeBlockPile(@NotNull Level world, @NotNull CubeBlockPile cubeBlockPile) {
+        ResourceLocation worldId = world.dimension().location();
         Map<BlockPos, CubeBlockPileData> worldMap = worldData
                 .computeIfAbsent(worldId, k -> new ConcurrentHashMap<>());
 
         CubeBlockPileData data = new CubeBlockPileData(
                 cubeBlockPile.getMasterPos(),
-                cubeBlockPile.getBaseBlock().getRegistryEntry().registryKey().getValue().toString(),
+                cubeBlockPile.getBaseBlock().builtInRegistryHolder().key().location().toString(),
                 cubeBlockPile.getRange().getStart(),
                 cubeBlockPile.getRange().getWidth(),
                 cubeBlockPile.getRange().getHeight(),
@@ -83,26 +83,26 @@ public class CubeBlockPilePersistentState extends PersistentState {
         );
 
         worldMap.put(cubeBlockPile.getMasterPos(), data);
-        markDirty();
+        setDirty();
     }
 
     /**
      * 移除方块堆数据
      */
-    public void removeCubeBlockPile(@NotNull World world, BlockPos masterPos) {
-        Identifier worldId = world.getRegistryKey().getValue();
+    public void removeCubeBlockPile(@NotNull Level world, BlockPos masterPos) {
+        ResourceLocation worldId = world.dimension().location();
         Map<BlockPos, CubeBlockPileData> worldMap = worldData.get(worldId);
         if (worldMap != null) {
             worldMap.remove(masterPos);
-            markDirty();
+            setDirty();
         }
     }
 
     /**
      * 获取世界中所有的方块堆数据
      */
-    public Collection<CubeBlockPileData> getCubeBlockPilesForWorld(@NotNull World world) {
-        Identifier worldId = world.getRegistryKey().getValue();
+    public Collection<CubeBlockPileData> getCubeBlockPilesForWorld(@NotNull Level world) {
+        ResourceLocation worldId = world.dimension().location();
         Map<BlockPos, CubeBlockPileData> worldMap = worldData.get(worldId);
         return worldMap != null ? worldMap.values() : Collections.emptyList();
     }
@@ -110,21 +110,21 @@ public class CubeBlockPilePersistentState extends PersistentState {
     /**
      * 清除世界中的所有方块堆数据
      */
-    public void clearWorldData(@NotNull World world) {
-        Identifier worldId = world.getRegistryKey().getValue();
+    public void clearWorldData(@NotNull Level world) {
+        ResourceLocation worldId = world.dimension().location();
         worldData.remove(worldId);
-        markDirty();
+        setDirty();
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
-        NbtList worldsList = new NbtList();
+    public CompoundTag save(CompoundTag nbt) {
+        ListTag worldsList = new ListTag();
 
-        for (Map.Entry<Identifier, Map<BlockPos, CubeBlockPileData>> worldEntry : worldData.entrySet()) {
-            NbtCompound worldNbt = new NbtCompound();
+        for (Map.Entry<ResourceLocation, Map<BlockPos, CubeBlockPileData>> worldEntry : worldData.entrySet()) {
+            CompoundTag worldNbt = new CompoundTag();
             worldNbt.putString("worldId", worldEntry.getKey().toString());
 
-            NbtList cubeBlockPilesList = new NbtList();
+            ListTag cubeBlockPilesList = new ListTag();
             for (CubeBlockPileData data : worldEntry.getValue().values()) {
                 cubeBlockPilesList.add(data.toNbt());
             }
@@ -141,19 +141,19 @@ public class CubeBlockPilePersistentState extends PersistentState {
     /**
      * 从NBT读取数据
      */
-    public static @NotNull CubeBlockPilePersistentState fromNbt(NbtCompound nbt) {
+    public static @NotNull CubeBlockPilePersistentState fromNbt(CompoundTag nbt) {
         CubeBlockPilePersistentState state = new CubeBlockPilePersistentState();
 
-        NbtList worldsList = nbt.getList("worlds", NbtElement.COMPOUND_TYPE);
-        for (NbtElement worldElement : worldsList) {
-            NbtCompound worldNbt = (NbtCompound) worldElement;
-            Identifier worldId = new Identifier(worldNbt.getString("worldId"));
+        ListTag worldsList = nbt.getList("worlds", Tag.TAG_COMPOUND);
+        for (Tag worldElement : worldsList) {
+            CompoundTag worldNbt = (CompoundTag) worldElement;
+            ResourceLocation worldId = new ResourceLocation(worldNbt.getString("worldId"));
 
             Map<BlockPos, CubeBlockPileData> worldMap = new ConcurrentHashMap<>();
-            NbtList cubeBlockPilesList = worldNbt.getList("cubeBlockPiles", NbtElement.COMPOUND_TYPE);
+            ListTag cubeBlockPilesList = worldNbt.getList("cubeBlockPiles", Tag.TAG_COMPOUND);
 
-            for (NbtElement blockElement : cubeBlockPilesList) {
-                NbtCompound blockNbt = (NbtCompound) blockElement;
+            for (Tag blockElement : cubeBlockPilesList) {
+                CompoundTag blockNbt = (CompoundTag) blockElement;
                 try {
                     CubeBlockPileData data = CubeBlockPileData.fromNbt(blockNbt);
                     worldMap.put(data.masterPos, data);
@@ -171,9 +171,9 @@ public class CubeBlockPilePersistentState extends PersistentState {
     /**
      * 获取或创建持久化状态
      */
-    public static CubeBlockPilePersistentState getOrCreate(ServerWorld world) {
-        PersistentStateManager persistentStateManager = world.getPersistentStateManager();
-        return persistentStateManager.getOrCreate(
+    public static CubeBlockPilePersistentState getOrCreate(ServerLevel world) {
+        DimensionDataStorage persistentStateManager = world.getDataStorage();
+        return persistentStateManager.computeIfAbsent(
                 CubeBlockPilePersistentState::fromNbt,
                 CubeBlockPilePersistentState::new,
                 PERSISTENT_ID
@@ -185,10 +185,10 @@ public class CubeBlockPilePersistentState extends PersistentState {
      */
     public void saveToFile(MinecraftServer server) {
         try {
-            File worldDir = server.getSavePath(WorldSavePath.ROOT).toFile();
+            File worldDir = server.getWorldPath(LevelResource.ROOT).toFile();
             File backupFile = new File(worldDir, "cubeBlockPileblocks_backup.dat");
 
-            NbtCompound nbt = this.writeNbt(new NbtCompound());
+            CompoundTag nbt = this.save(new CompoundTag());
             NbtIo.write(nbt, backupFile);
         } catch (IOException e) {
             LOGGER.error("Failed to backup CubeBlockPile data: {}", e.getMessage());

@@ -1,8 +1,8 @@
 package org.twcore.api.blockpile;
 
-import net.minecraft.block.Block;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ import java.util.*;
  * <pre>{@code
  * // 创建3x3x3的石头方块堆
  * CubeBlockPile stonePile = CubeBlockPile.builder()
- *     .world(world)
+ *     .level(level)
  *     .baseBlock(Blocks.STONE)
  *     .range(startPos, 3, 3, 3)
  *     .build();
@@ -54,7 +54,7 @@ public class CubeBlockPile implements AutoCloseable {
     /** 最大方块堆尺寸限制 */
     public static final int MAX_SIZE = 100;
 
-    protected final WorldView world;
+    protected final LevelReader world;
     protected final Block baseBlock;
     protected final PatternRange range;
     protected final BlockPos masterPos;
@@ -69,7 +69,7 @@ public class CubeBlockPile implements AutoCloseable {
      * @throws IllegalArgumentException 如果尺寸超过最大限制
      * @throws IllegalStateException    如果注册失败
      */
-    protected CubeBlockPile(WorldView world, Block baseBlock, PatternRange range) {
+    protected CubeBlockPile(LevelReader world, Block baseBlock, PatternRange range) {
         this.world = Objects.requireNonNull(world, "World cannot be null");
         this.baseBlock = Objects.requireNonNull(baseBlock, "Base block cannot be null");
         this.range = Objects.requireNonNull(range, "Range cannot be null");
@@ -109,14 +109,14 @@ public class CubeBlockPile implements AutoCloseable {
      * 方块堆结构构建器，提供流畅的API创建实例。
      */
     public static class Builder {
-        private WorldView world;
+        private LevelReader world;
         private Block baseBlock;
         private PatternRange range;
 
         /**
          * 设置世界。
          */
-        public Builder world(WorldView world) {
+        public Builder world(LevelReader world) {
             this.world = world;
             return this;
         }
@@ -703,7 +703,7 @@ public class CubeBlockPile implements AutoCloseable {
         }
     }
 
-    public WorldView getWorld() {
+    public LevelReader getWorld() {
         checkDisposed();
         return world;
     }
@@ -832,7 +832,7 @@ public class CubeBlockPile implements AutoCloseable {
      */
     private static void validateCombineConditions(CubeBlockPile first, CubeBlockPile second) {
         if (first.world != second.world) {
-            String errorMsg = "CubeBlockPiles must be in the same world";
+            String errorMsg = "CubeBlockPiles must be in the same level";
             LOGGER.error(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }

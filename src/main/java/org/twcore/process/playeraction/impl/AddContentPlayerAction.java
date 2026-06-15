@@ -1,13 +1,13 @@
 package org.twcore.process.playeraction.impl;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.twcore.api.content.ContainerStack;
 import org.twcore.api.content.ContainerUtil;
+import org.twcore.api.process.PlayerAction;
 import org.twcore.container.ContainerType;
 import org.twcore.content.Content;
-import org.twcore.api.process.PlayerAction;
 import org.twcore.process.step.StepExecutionContext;
 import org.twcore.registry.TWRegistries;
 
@@ -38,12 +38,12 @@ public class AddContentPlayerAction extends PlayerAction {
             throw new IllegalArgumentException("The Add Content parameter requires the Content ID parameter");
         }
 
-        Identifier contentId = Identifier.tryParse(params[0]);
+        ResourceLocation contentId = ResourceLocation.tryParse(params[0]);
         if (contentId == null) {
             throw new IllegalArgumentException("Invalid Content ID: " + params[0]);
         }
 
-        Content content = TWRegistries.CONTENT.get(contentId);
+        Content content = TWRegistries.CONTENT.get().getValue(contentId);
         if (content == null) {
             throw new IllegalArgumentException("No Content found: " + contentId);
         }
@@ -99,7 +99,7 @@ public class AddContentPlayerAction extends PlayerAction {
 
     @Override
     public String toString() {
-        Identifier contentId = TWRegistries.CONTENT.getId(content);
+        ResourceLocation contentId = TWRegistries.CONTENT.get().getKey(content);
         return String.format("add_content|%s|%d", contentId, count);
     }
 
@@ -132,7 +132,7 @@ public class AddContentPlayerAction extends PlayerAction {
             int containersNeeded = (int) Math.ceil((double) count / capacity);
 
             // 消耗对应数量的容器物品
-            heldItem.decrement(containersNeeded);
+            heldItem.shrink(containersNeeded);
 
             // 创建被消耗容器的一个副本，并清空其内容物后返还给玩家
             ItemStack consumedCopy = cs.originalStack().copyWithCount(containersNeeded);
@@ -153,7 +153,7 @@ public class AddContentPlayerAction extends PlayerAction {
 
     @Override
     public String getCode() {
-        Identifier contentId = TWRegistries.CONTENT.getId(content);
+        ResourceLocation contentId = TWRegistries.CONTENT.get().getKey(content);
         // 1. 操作类型固定位: "c" 表示添加物品
         StringBuilder code = new StringBuilder("c");
 
@@ -188,8 +188,8 @@ public class AddContentPlayerAction extends PlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
-        return Text.translatable("player_action.add_content", content.getDisplayName(), count);
+    public Component getDisplayName() {
+        return Component.translatable("player_action.add_content", content.getDisplayName(), count);
     }
 
     @Override

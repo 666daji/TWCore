@@ -1,11 +1,11 @@
 package org.twcore.container;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.PotionItem;
-import net.minecraft.potion.PotionUtil;
-import net.minecraft.potion.Potions;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PotionItem;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.twcore.content.Content;
@@ -18,7 +18,7 @@ public class PotionContainer extends AbstractMappedContainer {
 
     @Override
     public boolean matches(ItemStack stack) {
-        if (stack.isOf(getEmptyItem()) || supportsItem(stack.getItem())) {
+        if (stack.is(getEmptyItem()) || supportsItem(stack.getItem())) {
             return true;
         }
 
@@ -34,7 +34,7 @@ public class PotionContainer extends AbstractMappedContainer {
     @Override
     public @Nullable Content extractContent(ItemStack stack) {
         if (isWaterPotion(stack)) {
-            return Contents.WATER;
+            return Contents.WATER.get();
         }
 
         return super.extractContent(stack);
@@ -42,12 +42,12 @@ public class PotionContainer extends AbstractMappedContainer {
 
     @Override
     public @NotNull ItemStack replaceContent(@NotNull ItemStack stack, @Nullable Content content) {
-        if (content != null && content.equals(Contents.WATER)) {
+        if (content != null && content.equals(Contents.WATER.get())) {
             ItemStack result = new ItemStack(Items.POTION, stack.getCount());
-            if (stack.hasNbt()) {
-                result.setNbt(stack.getNbt());
+            if (stack.hasTag()) {
+                result.setTag(stack.getTag());
             }
-            return PotionUtil.setPotion(result, Potions.WATER);
+            return PotionUtils.setPotion(result, Potions.WATER);
         }
 
         return super.replaceContent(stack, content);
@@ -57,9 +57,9 @@ public class PotionContainer extends AbstractMappedContainer {
     @NotNull
     public ItemStack createItemStack(Content content, int amount) {
         // 特殊处理水瓶
-        if (content.equals(Contents.WATER)) {
+        if (content.equals(Contents.WATER.get())) {
             ItemStack result = new ItemStack(Items.POTION, amount);
-            return PotionUtil.setPotion(result, Potions.WATER);
+            return PotionUtils.setPotion(result, Potions.WATER);
         }
 
         return super.createItemStack(content, amount);
@@ -72,8 +72,8 @@ public class PotionContainer extends AbstractMappedContainer {
      */
     public static boolean isWaterPotion(ItemStack stack) {
         if (stack.getItem() instanceof PotionItem) {
-            return stack.isOf(Items.POTION) &&
-                    PotionUtil.getPotion(stack) == Potions.WATER;
+            return stack.is(Items.POTION) &&
+                    PotionUtils.getPotion(stack) == Potions.WATER;
         }
         return false;
     }

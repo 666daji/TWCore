@@ -1,9 +1,9 @@
 package org.twcore.client.api.animation;
 
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.entity.animation.Animation;
+import net.minecraft.client.animation.AnimationDefinition;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.joml.Vector3f;
 import org.twcore.api.animation.EnhancedAnimationState;
 
@@ -90,12 +90,12 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
          * @param part 要保存状态的模型部件
          */
         public PartState(ModelPart part) {
-            this.pivotX = part.pivotX;
-            this.pivotY = part.pivotY;
-            this.pivotZ = part.pivotZ;
-            this.pitch = part.pitch;
-            this.yaw = part.yaw;
-            this.roll = part.roll;
+            this.pivotX = part.x;
+            this.pivotY = part.y;
+            this.pivotZ = part.z;
+            this.pitch = part.xRot;
+            this.yaw = part.yRot;
+            this.roll = part.zRot;
             this.xScale = part.xScale;
             this.yScale = part.yScale;
             this.zScale = part.zScale;
@@ -107,8 +107,8 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
          * @param part 要恢复状态的模型部件
          */
         public void applyTo(ModelPart part) {
-            part.setPivot(pivotX, pivotY, pivotZ);
-            part.setAngles(pitch, yaw, roll);
+            part.setPos(pivotX, pivotY, pivotZ);
+            part.setRotation(pitch, yaw, roll);
             part.xScale = xScale;
             part.yScale = yScale;
             part.zScale = zScale;
@@ -186,7 +186,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
      * @param speedMultiplier   动画速度乘数
      * @param scale             动画缩放比例
      */
-    protected void applyAnimation(EnhancedAnimationState animationState, Animation animation,
+    protected void applyAnimation(EnhancedAnimationState animationState, AnimationDefinition animation,
                                   float animationProgress, float speedMultiplier, float scale) {
         resetAllModelParts();
         alwaysUpdateAnimation(animationState, animation, animationProgress, speedMultiplier, scale);
@@ -205,7 +205,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
      * @param speedMultiplier   动画速度乘数
      * @param scale             动画缩放比例
      */
-    protected void updateAnimation(EnhancedAnimationState animationState, Animation animation,
+    protected void updateAnimation(EnhancedAnimationState animationState, AnimationDefinition animation,
                                    float animationProgress, float speedMultiplier, float scale) {
         animationState.update(
                 animationProgress,
@@ -233,7 +233,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
      * @param speedMultiplier   动画速度乘数
      * @param scale             动画缩放比例
      */
-    protected void alwaysUpdateAnimation(EnhancedAnimationState animationState, Animation animation,
+    protected void alwaysUpdateAnimation(EnhancedAnimationState animationState, AnimationDefinition animation,
                                          float animationProgress, float speedMultiplier, float scale) {
         animationState.update(
                 animationProgress,
@@ -257,7 +257,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
      *
      * @param animation 要应用的动画
      */
-    protected void animate(Animation animation) {
+    protected void animate(AnimationDefinition animation) {
         ModAnimationHelper.animate(modelParts, animation, 0L, 1.0F, ANIMATION_VEC);
     }
 
@@ -274,7 +274,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
      * @param limbAngleScale     肢体角度缩放比例
      * @param limbDistanceScale  肢体距离缩放比例
      */
-    protected void animateMovement(Animation animation, float limbAngle, float limbDistance,
+    protected void animateMovement(AnimationDefinition animation, float limbAngle, float limbDistance,
                                    float limbAngleScale, float limbDistanceScale) {
         long l = (long)(limbAngle * 50.0F * limbAngleScale);
         float f = Math.min(limbDistance * limbDistanceScale, 1.0F);

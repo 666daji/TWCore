@@ -1,6 +1,6 @@
 package org.twcore.process.step;
 
-import net.minecraft.util.ActionResult;
+import net.minecraft.world.InteractionResult;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,7 +29,7 @@ public final class StepBuilders {
      * @return 步骤实例
      */
     public static <T> Step<T> simple(
-            Function<StepExecutionContext<T>, ActionResult> executor,
+            Function<StepExecutionContext<T>, InteractionResult> executor,
             String nextStepId) {
         return new SimpleStep<>(executor, nextStepId);
     }
@@ -48,7 +48,7 @@ public final class StepBuilders {
      * @return 步骤实例
      */
     public static <T> Step<T> looping(
-            Function<StepExecutionContext<T>, ActionResult> executor,
+            Function<StepExecutionContext<T>, InteractionResult> executor,
             Predicate<StepExecutionContext<T>> completionCondition,
             String nextStepId) {
         return new LoopingStep<>(executor, completionCondition, nextStepId);
@@ -65,7 +65,7 @@ public final class StepBuilders {
      * @return 步骤实例
      */
     public static <T> Step<T> conditional(
-            Function<StepExecutionContext<T>, ActionResult> executor,
+            Function<StepExecutionContext<T>, InteractionResult> executor,
             Function<StepExecutionContext<T>, String> nextStepSelector) {
         return new ConditionalStep<>(executor, nextStepSelector);
     }
@@ -83,7 +83,7 @@ public final class StepBuilders {
      * @return 步骤实例
      */
     public static <T> Step<T> fallible(
-            Function<StepExecutionContext<T>, ActionResult> executor,
+            Function<StepExecutionContext<T>, InteractionResult> executor,
             Predicate<StepExecutionContext<T>> successCondition,
             String successNextStepId,
             String failureNextStepId) {
@@ -100,7 +100,7 @@ public final class StepBuilders {
      * @return 步骤实例
      */
     public static <T> Step<T> complete(
-            Function<StepExecutionContext<T>, ActionResult> executor) {
+            Function<StepExecutionContext<T>, InteractionResult> executor) {
         return new CompleteStep<>(executor);
     }
 
@@ -124,28 +124,28 @@ public final class StepBuilders {
 
     /** 简单步骤实现 */
     private static class SimpleStep<T> implements Step<T> {
-        private final Function<StepExecutionContext<T>, ActionResult> executor;
+        private final Function<StepExecutionContext<T>, InteractionResult> executor;
         private final String nextStepId;
 
-        SimpleStep(Function<StepExecutionContext<T>, ActionResult> executor, String nextStepId) {
+        SimpleStep(Function<StepExecutionContext<T>, InteractionResult> executor, String nextStepId) {
             this.executor = executor;
             this.nextStepId = nextStepId;
         }
 
         @Override
         public StepResult execute(StepExecutionContext<T> context) {
-            ActionResult result = executor.apply(context);
+            InteractionResult result = executor.apply(context);
             return StepResult.nextStep(nextStepId, result);
         }
     }
 
     /** 循环步骤实现 */
     private static class LoopingStep<T> implements Step<T> {
-        private final Function<StepExecutionContext<T>, ActionResult> executor;
+        private final Function<StepExecutionContext<T>, InteractionResult> executor;
         private final Predicate<StepExecutionContext<T>> completionCondition;
         private final String nextStepId;
 
-        LoopingStep(Function<StepExecutionContext<T>, ActionResult> executor,
+        LoopingStep(Function<StepExecutionContext<T>, InteractionResult> executor,
                     Predicate<StepExecutionContext<T>> completionCondition,
                     String nextStepId) {
             this.executor = executor;
@@ -155,7 +155,7 @@ public final class StepBuilders {
 
         @Override
         public StepResult execute(StepExecutionContext<T> context) {
-            ActionResult result = executor.apply(context);
+            InteractionResult result = executor.apply(context);
 
             // 检查是否满足完成条件
             if (completionCondition.test(context)) {
@@ -168,10 +168,10 @@ public final class StepBuilders {
 
     /** 条件步骤实现 */
     private static class ConditionalStep<T> implements Step<T> {
-        private final Function<StepExecutionContext<T>, ActionResult> executor;
+        private final Function<StepExecutionContext<T>, InteractionResult> executor;
         private final Function<StepExecutionContext<T>, String> nextStepSelector;
 
-        ConditionalStep(Function<StepExecutionContext<T>, ActionResult> executor,
+        ConditionalStep(Function<StepExecutionContext<T>, InteractionResult> executor,
                         Function<StepExecutionContext<T>, String> nextStepSelector) {
             this.executor = executor;
             this.nextStepSelector = nextStepSelector;
@@ -179,7 +179,7 @@ public final class StepBuilders {
 
         @Override
         public StepResult execute(StepExecutionContext<T> context) {
-            ActionResult result = executor.apply(context);
+            InteractionResult result = executor.apply(context);
             String selectedNextStep = nextStepSelector.apply(context);
             return StepResult.nextStep(selectedNextStep, result);
         }
@@ -187,12 +187,12 @@ public final class StepBuilders {
 
     /** 可失败步骤实现 */
     private static class FallibleStep<T> implements Step<T> {
-        private final Function<StepExecutionContext<T>, ActionResult> executor;
+        private final Function<StepExecutionContext<T>, InteractionResult> executor;
         private final Predicate<StepExecutionContext<T>> successCondition;
         private final String successNextStepId;
         private final String failureNextStepId;
 
-        FallibleStep(Function<StepExecutionContext<T>, ActionResult> executor,
+        FallibleStep(Function<StepExecutionContext<T>, InteractionResult> executor,
                      Predicate<StepExecutionContext<T>> successCondition,
                      String successNextStepId, String failureNextStepId) {
             this.executor = executor;
@@ -203,7 +203,7 @@ public final class StepBuilders {
 
         @Override
         public StepResult execute(StepExecutionContext<T> context) {
-            ActionResult result = executor.apply(context);
+            InteractionResult result = executor.apply(context);
 
             if (successCondition.test(context)) {
                 return StepResult.nextStep(successNextStepId, result);
@@ -215,15 +215,15 @@ public final class StepBuilders {
 
     /** 完成步骤实现 */
     private static class CompleteStep<T> implements Step<T> {
-        private final Function<StepExecutionContext<T>, ActionResult> executor;
+        private final Function<StepExecutionContext<T>, InteractionResult> executor;
 
-        CompleteStep(Function<StepExecutionContext<T>, ActionResult> executor) {
+        CompleteStep(Function<StepExecutionContext<T>, InteractionResult> executor) {
             this.executor = executor;
         }
 
         @Override
         public StepResult execute(StepExecutionContext<T> context) {
-            ActionResult result = executor.apply(context);
+            InteractionResult result = executor.apply(context);
             return StepResult.complete(result);
         }
     }

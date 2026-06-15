@@ -1,14 +1,16 @@
 package org.twcore.api.process;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import org.twcore.process.step.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import org.twcore.process.step.Step;
+import org.twcore.process.step.StepExecutionContext;
+import org.twcore.process.step.StepResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +45,7 @@ import java.util.Map;
  *
  *     public ActionResult onUse(PlayerEntity player, Hand hand, BlockHitResult hit) {
  *         // 委托给流程执行
- *         return process.executeStep(this, getCachedState(), world, pos, player, hand, hit);
+ *         return process.executeStep(this, getCachedState(), level, pos, player, hand, hit);
  *     }
  *
  *     // 流程实例管理所有复杂逻辑
@@ -107,11 +109,11 @@ public abstract class AbstractProcess<T> {
      *
      * @throws IllegalStateException 如果当前步骤未设置或未注册
      */
-    public ActionResult executeStep(T blockEntity, BlockState blockState, World world, BlockPos pos,
-                                    PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public InteractionResult executeStep(T blockEntity, BlockState blockState, Level world, BlockPos pos,
+                                    Player player, InteractionHand hand, BlockHitResult hit) {
         // 检查流程状态
         if (!isActive || currentStepId == null) {
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
 
         // 记录当前步骤为即将执行的上一步
@@ -133,7 +135,7 @@ public abstract class AbstractProcess<T> {
 
         // 验证方块实体类型
         if (!currentStep.canExecuteOn(blockEntity)) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         // 执行步骤
@@ -150,19 +152,19 @@ public abstract class AbstractProcess<T> {
      * <p>这样流程的推进就可以在方块的tick方法或者一些奇怪的地方进行了。</p>
      *
      * @return 交互结果
-     * @see #executeStep(Object, BlockState, World, BlockPos, PlayerEntity, Hand, BlockHitResult)
+     * @see #executeStep(Object, BlockState, Level, BlockPos, Player, InteractionHand, BlockHitResult)
      */
-    public ActionResult executeStep(T blockEntity, BlockState blockState, World world, BlockPos pos) {
+    public InteractionResult executeStep(T blockEntity, BlockState blockState, Level world, BlockPos pos) {
         return executeStep(blockEntity, blockState, world, pos, null, null ,null);
     }
 
     /**
      * 开始执行流程。
      *
-     * <p>此方法将流程状态重置为初始状态，并调用{@link #onStart(World, Object)}回调。
+     * <p>此方法将流程状态重置为初始状态，并调用{@link #onStart(Level, Object)}回调。
      * 通常在玩家第一次与方块交互时调用。</p>
      */
-    public void start(World world, T blockEntit) {
+    public void start(Level world, T blockEntit) {
         this.isActive = true;
         this.currentStepId = getInitialStepId();
         this.previousStepId = null;
@@ -290,7 +292,7 @@ public abstract class AbstractProcess<T> {
      *
      * <p>子类可以在此方法中初始化流程状态数据。</p>
      */
-    protected void onStart(World world, T blockEntit) {}
+    protected void onStart(Level world, T blockEntit) {}
 
     /**
      * 当流程完成时调用。
@@ -332,7 +334,7 @@ public abstract class AbstractProcess<T> {
      *
      * @param nbt 要写入的NBT复合标签
      */
-    public void writeToNbt(NbtCompound nbt) {
+    public void writeToNbt(CompoundTag nbt) {
         if (currentStepId != null) {
             nbt.putString("current_step_id", currentStepId);
         }
@@ -349,7 +351,7 @@ public abstract class AbstractProcess<T> {
      *
      * @param nbt 要读取的NBT复合标签
      */
-    public void readFromNbt(NbtCompound nbt) {
+    public void readFromNbt(CompoundTag nbt) {
         if (nbt.contains("current_step_id")) {
             currentStepId = nbt.getString("current_step_id");
         }

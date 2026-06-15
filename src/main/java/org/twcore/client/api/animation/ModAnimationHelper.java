@@ -1,10 +1,10 @@
 package org.twcore.client.api.animation;
 
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.entity.animation.Animation;
-import net.minecraft.client.render.entity.animation.Keyframe;
-import net.minecraft.client.render.entity.animation.Transformation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.animation.AnimationChannel;
+import net.minecraft.client.animation.AnimationDefinition;
+import net.minecraft.client.animation.Keyframe;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class ModAnimationHelper {
      * @param scale 动画缩放比例
      * @param tempVec 临时向量，用于计算中间值
      */
-    public static void animate(Map<String, ModelPart> modelParts, Animation animation, long runningTime, float scale, Vector3f tempVec) {
+    public static void animate(Map<String, ModelPart> modelParts, AnimationDefinition animation, long runningTime, float scale, Vector3f tempVec) {
         float f = getRunningSeconds(animation, runningTime);
 
         animate(modelParts, animation, scale, tempVec, f);
@@ -42,7 +42,7 @@ public class ModAnimationHelper {
      * @param scale 动画缩放比例
      * @param tempVec 临时向量，用于计算中间值
      */
-    public static void animateWithPartial(Map<String, ModelPart> modelParts, Animation animation, long runningTime, float partialTime, float scale, Vector3f tempVec) {
+    public static void animateWithPartial(Map<String, ModelPart> modelParts, AnimationDefinition animation, long runningTime, float partialTime, float scale, Vector3f tempVec) {
         // 对于循环动画，确保时间在动画长度范围内
         long effectiveTime = runningTime;
         if (animation.looping() && animation.lengthInSeconds() > 0) {
@@ -59,14 +59,14 @@ public class ModAnimationHelper {
     /**
      * 对模型部件映射应用动画。
      */
-    private static void animate(Map<String, ModelPart> modelParts, Animation animation, float scale, Vector3f tempVec, float f) {
+    private static void animate(Map<String, ModelPart> modelParts, AnimationDefinition animation, float scale, Vector3f tempVec, float f) {
         for (var entry : animation.boneAnimations().entrySet()) {
             String boneName = entry.getKey();
             ModelPart part = modelParts.get(boneName);
 
             if (part != null) {
-                List<Transformation> transformations = entry.getValue();
-                for (Transformation transformation : transformations) {
+                List<AnimationChannel> transformations = entry.getValue();
+                for (AnimationChannel transformation : transformations) {
                     applyTransformation(part, transformation, f, scale, tempVec);
                 }
             }
@@ -82,9 +82,9 @@ public class ModAnimationHelper {
      * @param scale 缩放比例
      * @param tempVec 临时向量
      */
-    private static void applyTransformation(ModelPart part, Transformation transformation, float time, float scale, Vector3f tempVec) {
+    private static void applyTransformation(ModelPart part, AnimationChannel transformation, float time, float scale, Vector3f tempVec) {
         Keyframe[] keyframes = transformation.keyframes();
-        int i = Math.max(0, MathHelper.binarySearch(0, keyframes.length, index -> time <= keyframes[index].timestamp()) - 1);
+        int i = Math.max(0, Mth.binarySearch(0, keyframes.length, index -> time <= keyframes[index].timestamp()) - 1);
         int j = Math.min(keyframes.length - 1, i + 1);
         Keyframe keyframe = keyframes[i];
         Keyframe keyframe2 = keyframes[j];
@@ -92,7 +92,7 @@ public class ModAnimationHelper {
         float k;
 
         if (j != i) {
-            k = MathHelper.clamp(h / (keyframe2.timestamp() - keyframe.timestamp()), 0.0F, 1.0F);
+            k = Mth.clamp(h / (keyframe2.timestamp() - keyframe.timestamp()), 0.0F, 1.0F);
         } else {
             k = 0.0F;
         }
@@ -108,7 +108,7 @@ public class ModAnimationHelper {
      * @param runningTime 运行时间（毫秒）
      * @return 运行时间（秒）
      */
-    private static float getRunningSeconds(Animation animation, long runningTime) {
+    private static float getRunningSeconds(AnimationDefinition animation, long runningTime) {
         // 对于循环动画，确保时间在动画长度范围内
         long effectiveTime = runningTime;
         if (animation.looping() && animation.lengthInSeconds() > 0) {

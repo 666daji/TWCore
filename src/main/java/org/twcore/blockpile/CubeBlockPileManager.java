@@ -1,12 +1,15 @@
 package org.twcore.blockpile;
 
-import net.minecraft.block.Block;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
@@ -31,15 +34,15 @@ import java.util.function.Consumer;
  * </ul>
  *
  * <h2>注意</h2>
- * <p>该类以{@link World}作为一集键来区分不同维度中的方块堆，因此不得注册客户端世界的{@link CubeBlockPile}</p>
+ * <p>该类以{@link Level}作为一集键来区分不同维度中的方块堆，因此不得注册客户端世界的{@link CubeBlockPile}</p>
  *
  * <h2>使用示例</h2>
  * <pre>{@code
  * // 查找指定位置的方块堆
- * CubeBlockPile multiBlock = CubeBlockPileManager.findCubeBlockPile(world, pos);
+ * CubeBlockPile multiBlock = CubeBlockPileManager.findCubeBlockPile(level, pos);
  *
  * // 获取世界中的所有方块堆
- * Collection<CubeBlockPile> allCubeBlockPiles = CubeBlockPileManager.getCubeBlockPilesInWorld(world);
+ * Collection<CubeBlockPile> allCubeBlockPiles = CubeBlockPileManager.getCubeBlockPilesInWorld(level);
  * }</pre>
  *
  * @see CubeBlockPilePersistentState
@@ -52,7 +55,7 @@ public class CubeBlockPileManager {
      * <P>一级键存储不同世界中的方块堆映射，二级键使用主方块的坐标来标识一个方块堆</P>
      * <strong>注意：</strong>作为键的世界必须是一个服务器世界。
      */
-    private static final Map<WorldView, Map<BlockPos, CubeBlockPile>> CUBE_BLOCK_PILES = new WeakHashMap<>();
+    private static final Map<LevelReader, Map<BlockPos, CubeBlockPile>> CUBE_BLOCK_PILES = new WeakHashMap<>();
     private static final Object lock = new Object();
 
     /**
@@ -66,9 +69,9 @@ public class CubeBlockPileManager {
             return false;
         }
 
-        if (cubeBlockPile.getWorld() instanceof World world) {
-            if (world.isClient) {
-                LOGGER.error("Attempted to register CubeBlockPile on client world at {}", cubeBlockPile.getMasterPos());
+        if (cubeBlockPile.getWorld() instanceof Level world) {
+            if (world.isClientSide) {
+                LOGGER.error("Attempted to register CubeBlockPile on client level at {}", cubeBlockPile.getMasterPos());
                 cubeBlockPile.dispose();
                 return false;
             }
@@ -79,7 +82,7 @@ public class CubeBlockPileManager {
             return false;
         }
 
-        WorldView worldView = cubeBlockPile.getWorld();
+        LevelReader worldView = cubeBlockPile.getWorld();
         BlockPos masterPos = cubeBlockPile.getMasterPos();
 
         synchronized (lock) {
@@ -88,7 +91,7 @@ public class CubeBlockPileManager {
             if (worldMap.containsKey(masterPos)) {
                 CubeBlockPile existing = worldMap.get(masterPos);
                 if (!existing.isDisposed()) {
-                    LOGGER.warn("Position {} in world {} is already occupied by CubeBlockPile with base block {}",
+                    LOGGER.warn("Position {} in level {} is already occupied by CubeBlockPile with base block {}",
                             masterPos, worldView, existing.getBaseBlock());
                     return false;
                 } else {
@@ -100,7 +103,7 @@ public class CubeBlockPileManager {
             worldMap.put(masterPos, cubeBlockPile);
 
             // 持久化到存档
-            if (worldView instanceof ServerWorld serverWorld) {
+            if (worldView instanceof ServerLevel serverWorld) {
                 CubeBlockPilePersistentState persistentState = CubeBlockPilePersistentState.getOrCreate(serverWorld);
                 persistentState.addCubeBlockPile(serverWorld, cubeBlockPile);
             }
@@ -121,7 +124,7 @@ public class CubeBlockPileManager {
             return false;
         }
 
-        WorldView worldView = cubeBlockPile.getWorld();
+        LevelReader worldView = cubeBlockPile.getWorld();
         BlockPos masterPos = cubeBlockPile.getMasterPos();
 
         synchronized (lock) {
@@ -135,7 +138,7 @@ public class CubeBlockPileManager {
                 worldMap.remove(masterPos);
 
                 // 从持久化存储中移除
-                if (worldView instanceof ServerWorld serverWorld) {
+                if (worldView instanceof ServerLevel serverWorld) {
                     CubeBlockPilePersistentState persistentState = CubeBlockPilePersistentState.getOrCreate(serverWorld);
                     persistentState.removeCubeBlockPile(serverWorld, masterPos);
                 }
@@ -155,7 +158,7 @@ public class CubeBlockPileManager {
     /**
      * 加载世界时恢复方块堆数据
      */
-    public static void loadWorldCubeBlockPiles(ServerWorld world) {
+    public static void loadWorldCubeBlockPiles(ServerLevel world) {
         synchronized (lock) {
             CubeBlockPilePersistentState persistentState = CubeBlockPilePersistentState.getOrCreate(world);
             Collection<CubeBlockPilePersistentState.CubeBlockPileData> cubeBlockPileDataList = persistentState.getCubeBlockPilesForWorld(world);
@@ -179,11 +182,11 @@ public class CubeBlockPileManager {
     /**
      * 从持久化数据重建方块堆。
      */
-    private static CubeBlockPile rebuildCubeBlockPileFromData(ServerWorld world, CubeBlockPilePersistentState.CubeBlockPileData data) {
+    private static CubeBlockPile rebuildCubeBlockPileFromData(ServerLevel world, CubeBlockPilePersistentState.CubeBlockPileData data) {
         try {
             // 获取基础方块
-            Identifier blockId = new Identifier(data.baseBlockId());
-            Block baseBlock = Registries.BLOCK.get(blockId);
+            ResourceLocation blockId = new ResourceLocation(data.baseBlockId());
+            Block baseBlock = BuiltInRegistries.BLOCK.get(blockId);
 
             // 创建PatternRange
             CubeBlockPile.PatternRange range = new CubeBlockPile.PatternRange(data.start(), data.width(), data.height(), data.depth());
@@ -201,10 +204,17 @@ public class CubeBlockPileManager {
         }
     }
 
+    public static void onWorldStart(LevelEvent.Load event) {
+        Level world = (Level) event.getLevel();
+        if (!world.isClientSide()) {
+            CubeBlockPileManager.loadWorldCubeBlockPiles((ServerLevel) world);
+        }
+    }
+
     /**
      * 服务器关闭时清理
      */
-    public static void onServerStopping(net.minecraft.server.MinecraftServer server) {
+    public static void onServerStopping(ServerStoppingEvent event) {
         synchronized (lock) {
             CUBE_BLOCK_PILES.clear();
         }
@@ -213,8 +223,8 @@ public class CubeBlockPileManager {
     /**
      * 手动备份方块堆数据
      */
-    public static void backupCubeBlockPileData(net.minecraft.server.MinecraftServer server) {
-        for (ServerWorld world : server.getWorlds()) {
+    public static void backupCubeBlockPileData(MinecraftServer server) {
+        for (ServerLevel world : server.getAllLevels()) {
             CubeBlockPilePersistentState persistentState = CubeBlockPilePersistentState.getOrCreate(world);
             persistentState.saveToFile(server);
         }
@@ -224,7 +234,7 @@ public class CubeBlockPileManager {
      * 根据位置查找CubeBlockPile
      */
     @Nullable
-    public static CubeBlockPile findCubeBlockPile(WorldView world, BlockPos pos) {
+    public static CubeBlockPile findCubeBlockPile(LevelReader world, BlockPos pos) {
         synchronized (lock) {
             Map<BlockPos, CubeBlockPile> worldMap = CUBE_BLOCK_PILES.get(world);
             if (worldMap == null) {
@@ -266,7 +276,7 @@ public class CubeBlockPileManager {
     /**
      * 检查位置是否被有效的CubeBlockPile占用
      */
-    public static boolean isPositionOccupied(WorldView world, BlockPos pos) {
+    public static boolean isPositionOccupied(LevelReader world, BlockPos pos) {
         synchronized (lock) {
             Map<BlockPos, CubeBlockPile> worldMap = CUBE_BLOCK_PILES.get(world);
             if (worldMap == null) return false;
@@ -279,7 +289,7 @@ public class CubeBlockPileManager {
     /**
      * 获取世界中所有未销毁的CubeBlockPile
      */
-    public static Collection<CubeBlockPile> getCubeBlockPilesInWorld(WorldView world) {
+    public static Collection<CubeBlockPile> getCubeBlockPilesInWorld(LevelReader world) {
         synchronized (lock) {
             Map<BlockPos, CubeBlockPile> worldMap = CUBE_BLOCK_PILES.get(world);
             if (worldMap == null) {
@@ -299,10 +309,10 @@ public class CubeBlockPileManager {
     /**
      * 获取所有世界的CubeBlockPile数量统计
      */
-    public static Map<WorldView, Integer> getRegistryStats() {
+    public static Map<LevelReader, Integer> getRegistryStats() {
         synchronized (lock) {
-            Map<WorldView, Integer> stats = new HashMap<>();
-            for (Map.Entry<WorldView, Map<BlockPos, CubeBlockPile>> entry : CUBE_BLOCK_PILES.entrySet()) {
+            Map<LevelReader, Integer> stats = new HashMap<>();
+            for (Map.Entry<LevelReader, Map<BlockPos, CubeBlockPile>> entry : CUBE_BLOCK_PILES.entrySet()) {
                 int count = (int) entry.getValue().values().stream()
                         .filter(mb -> !mb.isDisposed())
                         .count();
@@ -317,7 +327,7 @@ public class CubeBlockPileManager {
     /**
      * 清理指定世界的所有CubeBlockPile
      */
-    public static int clearWorld(WorldView world) {
+    public static int clearWorld(LevelReader world) {
         synchronized (lock) {
             Map<BlockPos, CubeBlockPile> worldMap = CUBE_BLOCK_PILES.remove(world);
             if (worldMap != null) {
@@ -361,10 +371,10 @@ public class CubeBlockPileManager {
      */
     public static void performCleanup() {
         synchronized (lock) {
-            Iterator<Map.Entry<WorldView, Map<BlockPos, CubeBlockPile>>> worldIterator = CUBE_BLOCK_PILES.entrySet().iterator();
+            Iterator<Map.Entry<LevelReader, Map<BlockPos, CubeBlockPile>>> worldIterator = CUBE_BLOCK_PILES.entrySet().iterator();
 
             while (worldIterator.hasNext()) {
-                Map.Entry<WorldView, Map<BlockPos, CubeBlockPile>> worldEntry = worldIterator.next();
+                Map.Entry<LevelReader, Map<BlockPos, CubeBlockPile>> worldEntry = worldIterator.next();
                 Map<BlockPos, CubeBlockPile> worldMap = worldEntry.getValue();
 
                 Iterator<Map.Entry<BlockPos, CubeBlockPile>> blockIterator = worldMap.entrySet().iterator();
@@ -389,7 +399,7 @@ public class CubeBlockPileManager {
     /**
      * 使用try-with-resources模式创建临时CubeBlockPile
      */
-    public static void withCubeBlockPile(WorldView world, Block baseBlock, CubeBlockPile.PatternRange range,
+    public static void withCubeBlockPile(LevelReader world, Block baseBlock, CubeBlockPile.PatternRange range,
                                       Consumer<CubeBlockPile> action) {
         try (CubeBlockPile cubeBlockPile = CubeBlockPile.builder()
                 .world(world)

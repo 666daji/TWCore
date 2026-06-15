@@ -1,10 +1,10 @@
 package org.twcore.client.api.render;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.world.item.ItemStack;
 import org.twcore.api.block.UpPlaceBlock;
 import org.twcore.api.block.UpPlaceBlockEntity;
 
@@ -13,9 +13,9 @@ import org.twcore.api.block.UpPlaceBlockEntity;
  * @param <T> 对应的{@link UpPlaceBlock}的子类
  */
 public abstract class UpPlaceBlockEntityRenderer<T extends UpPlaceBlockEntity> implements BlockEntityRenderer<T> {
-    protected final BlockEntityRendererFactory.Context context;
+    protected final BlockEntityRendererProvider.Context context;
 
-    public UpPlaceBlockEntityRenderer(BlockEntityRendererFactory.Context ctx) {
+    public UpPlaceBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
         this.context = ctx;
     }
 
@@ -26,8 +26,8 @@ public abstract class UpPlaceBlockEntityRenderer<T extends UpPlaceBlockEntity> i
      * @param entity 当前的方块实体
      * @apiNote 需要子类在render方法中主动调用该方法渲染
      */
-    protected void fromStackRender(ItemStack stack, T entity, float tickDelta, MatrixStack matrices,
-                                   VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    protected void fromStackRender(ItemStack stack, T entity, float tickDelta, PoseStack matrices,
+                                   MultiBufferSource vertexConsumers, int light, int overlay) {
         // 获取渲染器
         UpPlaceStackRenderer renderer = UpPlaceStackRenderer.get(stack.getItem());
 

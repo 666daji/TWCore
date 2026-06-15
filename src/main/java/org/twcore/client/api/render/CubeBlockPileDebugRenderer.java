@@ -1,10 +1,10 @@
 package org.twcore.client.api.render;
 
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.twcore.api.blockpile.CubeBlockPile;
 import org.twcore.api.blockpile.CubeBlockPileReference;
 
@@ -20,7 +20,7 @@ public interface CubeBlockPileDebugRenderer<T extends BlockEntity> {
      *
      * @return 文本渲染器
      */
-    TextRenderer getTextRenderer();
+    Font getTextRenderer();
 
     /**
      * 获取方块的多方块引用
@@ -35,12 +35,12 @@ public interface CubeBlockPileDebugRenderer<T extends BlockEntity> {
      * @param matrices 变换矩阵，注意，此时的矩阵已经被变换到了渲染文字的地方。
      *                 如果需要一个新的矩阵，请再对矩阵进行一次推送
      */
-    default void otherDebugRender(T entity, CubeBlockPileReference reference, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {}
+    default void otherDebugRender(T entity, CubeBlockPileReference reference, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {}
 
     /**
      * 渲染多方块调试信息。
      */
-    default void renderDebugInfo(T entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    default void renderDebugInfo(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
         // 获取多方块引用
         CubeBlockPileReference multiBlockRef = getReference(entity);
         if (multiBlockRef == null || multiBlockRef.isDisposed()) {
@@ -50,7 +50,7 @@ public interface CubeBlockPileDebugRenderer<T extends BlockEntity> {
         // 获取坐标信息
         BlockPos masterPos = multiBlockRef.getMasterWorldPos();
         BlockPos relativePos = multiBlockRef.getRelativePos();
-        BlockPos currentPos = entity.getPos();
+        BlockPos currentPos = entity.getBlockPos();
 
         // 构建显示的文本
         String masterText = String.format("%d,%d,%d", masterPos.getX(), masterPos.getY(), masterPos.getZ());
@@ -65,7 +65,7 @@ public interface CubeBlockPileDebugRenderer<T extends BlockEntity> {
         boolean isIntact = multiBlockRef.checkIntegrity();
         String integrityStatus = isIntact ? "INTACT" : "BROKEN";
 
-        matrices.push();
+        matrices.pushPose();
 
         try {
             // 将坐标系移动到方块中心上方
@@ -83,88 +83,88 @@ public interface CubeBlockPileDebugRenderer<T extends BlockEntity> {
             int blue = 0xFF0088FF;
 
             // 计算文本宽度用于居中
-            int masterWidth = getTextRenderer().getWidth(masterText);
-            int relativeWidth = getTextRenderer().getWidth(relativeText);
-            int currentWidth = getTextRenderer().getWidth(currentText);
-            int statusWidth = getTextRenderer().getWidth(masterStatus);
-            int integrityWidth = getTextRenderer().getWidth(integrityStatus);
+            int masterWidth = getTextRenderer().width(masterText);
+            int relativeWidth = getTextRenderer().width(relativeText);
+            int currentWidth = getTextRenderer().width(currentText);
+            int statusWidth = getTextRenderer().width(masterStatus);
+            int integrityWidth = getTextRenderer().width(integrityStatus);
 
             int maxWidth = Math.max(Math.max(masterWidth, relativeWidth),
                     Math.max(currentWidth, Math.max(statusWidth, integrityWidth)));
 
             // 获取位置矩阵
-            var positionMatrix = matrices.peek().getPositionMatrix();
+            var positionMatrix = matrices.last().pose();
 
             // 渲染主方块坐标（蓝色）
-            getTextRenderer().draw(
+            getTextRenderer().drawInBatch(
                     masterText,
                     -masterWidth / 2f, -40,
                     blue,
                     false,
                     positionMatrix,
                     vertexConsumers,
-                    TextRenderer.TextLayerType.POLYGON_OFFSET,
+                    Font.DisplayMode.POLYGON_OFFSET,
                     0,
                     light
             );
 
             // 渲染相对坐标（黄色）
-            getTextRenderer().draw(
+            getTextRenderer().drawInBatch(
                     relativeText,
                     -relativeWidth / 2f, -30,
                     yellow,
                     false,
                     positionMatrix,
                     vertexConsumers,
-                    TextRenderer.TextLayerType.POLYGON_OFFSET,
+                    Font.DisplayMode.POLYGON_OFFSET,
                     1,
                     light
             );
 
             // 渲染当前坐标（白色）
-            getTextRenderer().draw(
+            getTextRenderer().drawInBatch(
                     currentText,
                     -currentWidth / 2f, -20,
                     white,
                     false,
                     positionMatrix,
                     vertexConsumers,
-                    TextRenderer.TextLayerType.POLYGON_OFFSET,
+                    Font.DisplayMode.POLYGON_OFFSET,
                     0,
                     light
             );
 
             // 渲染主方块状态（绿色表示主方块，白色表示从方块）
             int masterColor = isMaster ? green : white;
-            getTextRenderer().draw(
+            getTextRenderer().drawInBatch(
                     masterStatus,
                     -statusWidth / 2f, -10,
                     masterColor,
                     false,
                     positionMatrix,
                     vertexConsumers,
-                    TextRenderer.TextLayerType.POLYGON_OFFSET,
+                    Font.DisplayMode.POLYGON_OFFSET,
                     0,
                     light
             );
 
             // 渲染完整性状态（绿色表示完整，红色表示损坏）
             int integrityColor = isIntact ? green : red;
-            getTextRenderer().draw(
+            getTextRenderer().drawInBatch(
                     integrityStatus,
                     -integrityWidth / 2f, 0,
                     integrityColor,
                     false,
                     positionMatrix,
                     vertexConsumers,
-                    TextRenderer.TextLayerType.POLYGON_OFFSET,
+                    Font.DisplayMode.POLYGON_OFFSET,
                     0,
                     light
             );
 
             otherDebugRender(entity, multiBlockRef, tickDelta, matrices, vertexConsumers, light, overlay);
         } finally {
-            matrices.pop();
+            matrices.popPose();
         }
     }
 }

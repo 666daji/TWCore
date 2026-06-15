@@ -1,13 +1,13 @@
 package org.twcore.api.util;
 
-import net.minecraft.state.property.IntProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 用于管理和创建自定义范围的 {@link IntProperty} 属性的工具类。
+ * 用于管理和创建自定义范围的 {@link IntegerProperty} 属性的工具类。
  *
  * <p>该类提供了两种主要机制来管理方块属性：
  * <ol>
@@ -74,11 +74,11 @@ import java.util.Map;
  *   <li>Minecraft 允许重名的不同属性，因此不同范围的同名属性会被视为不同的属性</li>
  * </ul>
  *
- * @see IntProperty
+ * @see IntegerProperty
  */
 public class IntPropertyManager {
     // 多属性缓存，避免重复创建相同范围的属性
-    private static final Map<String, IntProperty> PROPERTY_CACHE = new HashMap<>();
+    private static final Map<String, IntegerProperty> PROPERTY_CACHE = new HashMap<>();
 
     // 预缓存信息
     private static PendingPropertyInfo pendingInfo = null;
@@ -114,7 +114,7 @@ public class IntPropertyManager {
      * @return 对应的 IntProperty 实例
      * @throws IllegalStateException 如果没有预缓存的属性信息
      */
-    public static IntProperty take() {
+    public static IntegerProperty take() {
         if (pendingInfo == null) {
             throw new IllegalStateException("No pre-cached property found");
         }
@@ -124,13 +124,13 @@ public class IntPropertyManager {
 
         // 检查是否已存在相同范围的属性
         if (PROPERTY_CACHE.containsKey(key)) {
-            IntProperty property = PROPERTY_CACHE.get(key);
+            IntegerProperty property = PROPERTY_CACHE.get(key);
             clearPending(); // 清除预缓存信息
             return property;
         }
 
         // 创建新属性并缓存
-        IntProperty property = IntProperty.of(pendingInfo.name, pendingInfo.min, pendingInfo.max);
+        IntegerProperty property = IntegerProperty.create(pendingInfo.name, pendingInfo.min, pendingInfo.max);
         PROPERTY_CACHE.put(key, property);
         clearPending(); // 清除预缓存信息
         return property;
@@ -143,7 +143,7 @@ public class IntPropertyManager {
      * @param max 最大值
      * @return 对应的 IntProperty 实例
      */
-    public static IntProperty create(String name, int max) {
+    public static IntegerProperty create(String name, int max) {
         return create(name, 1, max);
     }
 
@@ -155,7 +155,7 @@ public class IntPropertyManager {
      * @param max 最大值
      * @return 对应的 IntProperty 实例
      */
-    public static IntProperty create(String name, int min, int max) {
+    public static IntegerProperty create(String name, int min, int max) {
         if (max == min) {
             min -= 1;
         }
@@ -167,7 +167,7 @@ public class IntPropertyManager {
         }
 
         // 创建新属性并缓存
-        IntProperty property = IntProperty.of(name, min, max);
+        IntegerProperty property = IntegerProperty.create(name, min, max);
         PROPERTY_CACHE.put(key, property);
         return property;
     }

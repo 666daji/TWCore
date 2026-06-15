@@ -1,27 +1,26 @@
 package org.twcore.api.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.twcore.api.sound.Item2BlockSounds;
 
 import java.util.List;
@@ -29,38 +28,38 @@ import java.util.List;
 /**
  * 放置物品方块实体基类，用于管理方块上的物品放置和取出功能。
  * <p>
- * 该实体实现了{@link Inventory}接口，支持物品的存储和管理，并提供了一套完整的物品放置和取出机制。
+ * 该实体实现了{@link Container}接口，支持物品的存储和管理，并提供了一套完整的物品放置和取出机制。
  * 子类需要实现特定的物品验证、形状计算和交互逻辑。
  * </p>
  *
  * @see UpPlaceBlock
  */
-public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventory {
+public abstract class UpPlaceBlockEntity extends BlockEntity implements Container {
     /**
      * 物品栏列表，存储方块上放置的所有物品
      */
-    protected DefaultedList<ItemStack> inventory;
+    protected NonNullList<ItemStack> inventory;
 
     public UpPlaceBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int inventorySize) {
         super(type, pos, state);
-        this.inventory = DefaultedList.ofSize(inventorySize, ItemStack.EMPTY);
+        this.inventory = NonNullList.withSize(inventorySize, ItemStack.EMPTY);
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        this.inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
-        Inventories.readNbt(nbt, this.inventory);
+    public void load(CompoundTag nbt) {
+        super.load(nbt);
+        this.inventory = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(nbt, this.inventory);
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-        Inventories.writeNbt(nbt, this.inventory);
+    protected void saveAdditional(CompoundTag nbt) {
+        super.saveAdditional(nbt);
+        ContainerHelper.saveAllItems(nbt, this.inventory);
     }
 
     @Override
-    public int size() {
+    public int getContainerSize() {
         return inventory.size();
     }
 
@@ -75,25 +74,25 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
     }
 
     @Override
-    public ItemStack getStack(int slot) {
+    public ItemStack getItem(int slot) {
         validateSlotIndex(slot);
         return this.inventory.get(slot);
     }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         validateSlotIndex(slot);
-        return Inventories.splitStack(this.inventory, slot, amount);
+        return ContainerHelper.removeItem(this.inventory, slot, amount);
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         validateSlotIndex(slot);
-        return Inventories.removeStack(this.inventory, slot);
+        return ContainerHelper.takeItem(this.inventory, slot);
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         validateSlotIndex(slot);
 
         this.inventory.set(slot, stack);
@@ -101,12 +100,12 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
     }
 
     @Override
-    public void clear() {
+    public void clearContent() {
         this.inventory.clear();
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
@@ -116,8 +115,8 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @param stack 需要限制堆叠大小的物品堆栈
      */
     protected void limitStackSizeIfNeeded(ItemStack stack) {
-        if (stack.getCount() > this.getMaxCountPerStack()) {
-            stack.setCount(this.getMaxCountPerStack());
+        if (stack.getCount() > this.getMaxStackSize()) {
+            stack.setCount(this.getMaxStackSize());
         }
     }
 
@@ -128,8 +127,8 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @throws IllegalArgumentException 如果槽位索引超出有效范围
      */
     public void validateSlotIndex(int slot) {
-        if (slot < 0 || slot >= this.size()) {
-            throw new IllegalArgumentException("Slot " + slot + " not in valid range - [0," + this.size() + ")");
+        if (slot < 0 || slot >= this.getContainerSize()) {
+            throw new IllegalArgumentException("Slot " + slot + " not in valid range - [0," + this.getContainerSize() + ")");
         }
     }
 
@@ -145,7 +144,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @param context 形状计算上下文
      * @return 物品的碰撞形状
      */
-    public abstract VoxelShape getContentShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context);
+    public abstract VoxelShape getContentShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context);
 
     /**
      * 验证物品是否可以放入该方块实体的物品栏。
@@ -159,12 +158,12 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * 尝试向容器中添加物品。
      * <p>
      * 默认每次添加会消耗数量为1的物品。如果需要不同的消耗数量，
-     * 一般需要重写{@link #onPlace(BlockState, World, BlockPos, PlayerEntity, Hand, BlockHitResult, ItemStack, List)}方法，
+     * 一般需要重写{@link #onPlace(BlockState, Level, BlockPos, Player, InteractionHand, BlockHitResult, ItemStack, List)}方法，
      * 来扣除玩家不同数量的物品
      * </p>
      *
      * @param stack 要添加的物品堆栈
-     * @return 操作结果，成功返回{@link ActionResult#SUCCESS}，失败返回{@link ActionResult#FAIL}
+     * @return 操作结果，成功返回{@link InteractionResult#SUCCESS}，失败返回{@link InteractionResult#FAIL}
      */
     public abstract Result tryAddItem(ItemStack stack);
 
@@ -172,9 +171,9 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * 尝试从容器中取出物品。
      *
      * @param player 执行取出操作的玩家
-     * @return 操作结果，成功返回{@link ActionResult#SUCCESS}，失败返回{@link ActionResult#FAIL}
+     * @return 操作结果，成功返回{@link InteractionResult#SUCCESS}，失败返回{@link InteractionResult#FAIL}
      */
-    public abstract Result tryFetchItem(PlayerEntity player);
+    public abstract Result tryFetchItem(Player player);
 
     /**
      * 当物品成功取出时调用的回调方法。
@@ -192,7 +191,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @param hit 方块击中结果
      * @param fetchStacks 此次取出操作获得的所有物品堆栈
      */
-    public void onFetch(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, List<ItemStack> fetchStacks) {
+    public void onFetch(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, List<ItemStack> fetchStacks) {
         playSound(world, pos, fetchStacks.get(0), false);
     }
 
@@ -213,11 +212,11 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @param placeStack 放置的物品堆栈
      * @param itemStacks 操作影响的物品堆栈，一般是长度1的placeStack列表
      */
-    public void onPlace(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, ItemStack placeStack, List<ItemStack> itemStacks) {
+    public void onPlace(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, ItemStack placeStack, List<ItemStack> itemStacks) {
         playSound(world, pos, placeStack, true);
 
         if (!player.isCreative()) {
-            placeStack.decrement(1);
+            placeStack.shrink(1);
         }
     }
 
@@ -232,8 +231,8 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @param isPlaceSound true 为放置音效，false 为取出音效
      * @see UpPlaceBlock.UpSounds
      */
-    protected void playSound(World world, BlockPos pos, ItemStack stack, boolean isPlaceSound) {
-        if (getCachedState().getBlock() instanceof UpPlaceBlock upPlaceBlock) {
+    protected void playSound(Level world, BlockPos pos, ItemStack stack, boolean isPlaceSound) {
+        if (getBlockState().getBlock() instanceof UpPlaceBlock upPlaceBlock) {
             UpPlaceBlock.UpSounds sounds = upPlaceBlock.upSounds;
 
             if (sounds == UpPlaceBlock.UpSounds.EMPTY) {
@@ -243,7 +242,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
             if (sounds == UpPlaceBlock.UpSounds.DYNAMIC) {
                 SoundEvent sound = getDynamicPlaceSound(stack, isPlaceSound);
                 if (sound != null) {
-                    world.playSound(null, pos, sound, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                    world.playSound(null, pos, sound, SoundSource.BLOCKS, 1.0F, 1.0F);
                 }
             } else {
                 sounds.playSound(world, pos, isPlaceSound);
@@ -257,7 +256,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * 该方法仅在 {@link UpPlaceBlock.UpSounds#DYNAMIC} 模式下被调用。
      * 默认实现：
      * <ul>
-     *     <li>如果物品是 {@link net.minecraft.item.BlockItem}，则返回其对应方块的放置/破坏音效。</li>
+     *     <li>如果物品是 {@link net.minecraft.world.item.BlockItem}，则返回其对应方块的放置/破坏音效。</li>
      *     <li>否则使用 {@link UpPlaceBlock.UpSounds#DYNAMIC} 中预置的兜底音效（石头音效）。</li>
      * </ul>
      * 子类可以重写此方法以实现完全自定义的动态音效选择逻辑。
@@ -267,7 +266,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @return 要播放的 {@link SoundEvent}，返回 {@code null} 则不播放任何声音
      */
     protected SoundEvent getDynamicPlaceSound(ItemStack stack, boolean isPlaceSound) {
-        BlockSoundGroup soundGroup = Item2BlockSounds.getSoundGroup(stack);
+        SoundType soundGroup = Item2BlockSounds.getSoundGroup(stack);
 
         return isPlaceSound ? soundGroup.getPlaceSound() : soundGroup.getBreakSound();
     }
@@ -278,7 +277,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @return 容器中第一个物品的类型，如果容器为空则返回null
      */
     public Item getContentItem() {
-        ItemStack contentStack = this.getStack(0);
+        ItemStack contentStack = this.getItem(0);
         return contentStack.isEmpty() ? null : contentStack.getItem();
     }
 
@@ -291,9 +290,9 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @return 如果容器已满返回true，否则返回false
      */
     public boolean isFull() {
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack stack = this.getStack(i);
-            if (stack.isEmpty() || stack.getCount() < this.getMaxCountPerStack()) {
+        for (int i = 0; i < this.getContainerSize(); i++) {
+            ItemStack stack = this.getItem(i);
+            if (stack.isEmpty() || stack.getCount() < this.getMaxStackSize()) {
                 return false;
             }
         }
@@ -303,11 +302,11 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
     /**
      * 标记方块实体数据已更改，并同步到客户端。
      * <p>
-     * 这是一个便捷方法，结合了{@link #markDirty()}和{@link #sync()}的调用。
+     * 这是一个便捷方法，结合了{@link #setChanged()}和{@link #sync()}的调用。
      * </p>
      */
     public void markDirtyAndSync() {
-        this.markDirty();
+        this.setChanged();
         this.sync();
     }
 
@@ -318,8 +317,8 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * </p>
      */
     public void sync() {
-        if (this.world != null && !this.world.isClient) {
-            this.world.updateListeners(this.pos, this.getCachedState(), this.getCachedState(), 3);
+        if (this.level != null && !this.level.isClientSide) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
@@ -329,21 +328,21 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
      * @param opsStacks 操作的物品堆栈列表
      * @param result 操作的结果
      */
-    public record Result(List<ItemStack> opsStacks, ActionResult result) {
-        public static Result of(List<ItemStack> opsStacks, ActionResult result) {
+    public record Result(List<ItemStack> opsStacks, InteractionResult result) {
+        public static Result of(List<ItemStack> opsStacks, InteractionResult result) {
             return new Result(opsStacks, result);
         }
 
-        public static Result of(ActionResult result) {
+        public static Result of(InteractionResult result) {
             return new Result(List.of(), result);
         }
 
-        public static Result of(ItemStack stack, ActionResult result) {
+        public static Result of(ItemStack stack, InteractionResult result) {
             return new Result(List.of(stack), result);
         }
 
         public boolean isAccepted() {
-            return result.isAccepted();
+            return result.consumesAction();
         }
     }
 }

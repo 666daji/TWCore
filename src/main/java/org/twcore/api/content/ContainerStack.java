@@ -1,6 +1,6 @@
 package org.twcore.api.content;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.twcore.container.ContainerType;
@@ -138,7 +138,7 @@ public record ContainerStack(ContainerType container, @Nullable Content content,
         if (!(o instanceof ContainerStack that)) return false;
         return container.equals(that.container) &&
                 Objects.equals(content, that.content) &&
-                ItemStack.areItemsEqual(originalStack, that.originalStack);
+                ItemStack.isSameItem(originalStack, that.originalStack);
     }
 
     @Override

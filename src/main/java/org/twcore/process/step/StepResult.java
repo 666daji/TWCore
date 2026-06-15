@@ -1,6 +1,6 @@
 package org.twcore.process.step;
 
-import net.minecraft.util.ActionResult;
+import net.minecraft.world.InteractionResult;
 
 /**
  * 步骤执行结果，包含步骤执行后的交互结果和下一步指示。
@@ -52,7 +52,7 @@ public class StepResult {
 
     // ============ 私有字段 ============
 
-    private final ActionResult actionResult;
+    private final InteractionResult actionResult;
     private final Type type;
     private final String nextStepId;
     private final String fallbackStepId;
@@ -67,7 +67,7 @@ public class StepResult {
      * @param nextStepId 下一步骤ID（仅{@link Type#NEXT_STEP}类型需要）
      * @param fallbackStepId 回退步骤ID（仅{@link Type#FAIL}类型需要）
      */
-    private StepResult(ActionResult actionResult, Type type,
+    private StepResult(InteractionResult actionResult, Type type,
                        String nextStepId, String fallbackStepId) {
         this.actionResult = actionResult;
         this.type = type;
@@ -86,7 +86,7 @@ public class StepResult {
      * @param actionResult 玩家交互结果
      * @return 步骤结果实例
      */
-    public static StepResult continueSameStep(ActionResult actionResult) {
+    public static StepResult continueSameStep(InteractionResult actionResult) {
         return new StepResult(actionResult, Type.CONTINUE_SAME_STEP, null, null);
     }
 
@@ -99,7 +99,7 @@ public class StepResult {
      * @param actionResult 玩家交互结果
      * @return 步骤结果实例
      */
-    public static StepResult nextStep(String nextStepId, ActionResult actionResult) {
+    public static StepResult nextStep(String nextStepId, InteractionResult actionResult) {
         return new StepResult(actionResult, Type.NEXT_STEP, nextStepId, null);
     }
 
@@ -111,7 +111,7 @@ public class StepResult {
      * @param actionResult 玩家交互结果
      * @return 步骤结果实例
      */
-    public static StepResult complete(ActionResult actionResult) {
+    public static StepResult complete(InteractionResult actionResult) {
         return new StepResult(actionResult, Type.COMPLETE, null, null);
     }
 
@@ -126,7 +126,7 @@ public class StepResult {
      * @param actionResult 玩家交互结果
      * @return 步骤结果实例
      */
-    public static StepResult fail(String fallbackStepId, ActionResult actionResult) {
+    public static StepResult fail(String fallbackStepId, InteractionResult actionResult) {
         return new StepResult(actionResult, Type.FAIL, null, fallbackStepId);
     }
 
@@ -139,7 +139,7 @@ public class StepResult {
      * @param actionResult 玩家交互结果
      * @return 步骤结果实例
      */
-    public static StepResult reset(ActionResult actionResult) {
+    public static StepResult reset(InteractionResult actionResult) {
         return new StepResult(actionResult, Type.RESET, null, null);
     }
 
@@ -150,7 +150,7 @@ public class StepResult {
      *
      * @return 玩家交互结果
      */
-    public ActionResult getActionResult() {
+    public InteractionResult getActionResult() {
         return actionResult;
     }
 

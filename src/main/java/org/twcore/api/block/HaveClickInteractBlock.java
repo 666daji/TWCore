@@ -1,11 +1,11 @@
 package org.twcore.api.block;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * 标记方块可响应玩家的“轻击”操作（快速左键点击）。
@@ -23,7 +23,7 @@ import net.minecraft.world.World;
  * 实际时长取决于网络延迟和游戏刻计算，建议避免依赖精确的时间阈值。
  * 该方法仅在服务端调用，客户端不会收到通知。
  *
- * @see #onClickBlock(BlockState, World, BlockPos, PlayerEntity, Hand, Direction)
+ * @see #onClickBlock(BlockState, Level, BlockPos, Player, InteractionHand, Direction)
  */
 public interface HaveClickInteractBlock {
     /**
@@ -37,5 +37,5 @@ public interface HaveClickInteractBlock {
      * @param hand      使用的手(破坏时为主手)
      * @param direction 破坏方向
      */
-    void onClickBlock(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, Direction direction);
+    void onClickBlock(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, Direction direction);
 }

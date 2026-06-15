@@ -1,13 +1,13 @@
 package org.twcore.blockpile;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class ServerCubeBlockPileReference implements CubeBlockPileReference {
      * 从世界坐标创建通用引用（服务端或客户端）
      */
     @Nullable
-    public static CubeBlockPileReference fromWorldPos(@NotNull WorldView world, @NotNull BlockPos worldPos, boolean createClientReference) {
+    public static CubeBlockPileReference fromWorldPos(@NotNull LevelReader world, @NotNull BlockPos worldPos, boolean createClientReference) {
         CubeBlockPile cubeBlockPile = CubeBlockPileManager.findCubeBlockPile(world, worldPos);
         if (cubeBlockPile == null || cubeBlockPile.isDisposed()) {
             return null;
@@ -91,7 +91,7 @@ public class ServerCubeBlockPileReference implements CubeBlockPileReference {
         );
 
         try {
-            if (createClientReference && world.isClient()) {
+            if (createClientReference && world.isClientSide()) {
                 // 在客户端创建客户端引用
                 ServerCubeBlockPileReference serverRef = new ServerCubeBlockPileReference(cubeBlockPile, relativePos);
                 return ClientCubeBlockPileReference.fromServerReference(serverRef);
@@ -117,17 +117,17 @@ public class ServerCubeBlockPileReference implements CubeBlockPileReference {
      * 从NBT反序列化引用（服务端版本）
      */
     @Nullable
-    public static ServerCubeBlockPileReference fromNbt(@NotNull WorldView world, @NotNull NbtCompound nbt) {
+    public static ServerCubeBlockPileReference fromNbt(@NotNull LevelReader world, @NotNull CompoundTag nbt) {
         try {
             // 读取主方块坐标
-            BlockPos masterPos = NbtHelper.toBlockPos(nbt.getCompound(MASTER_POS_KEY));
+            BlockPos masterPos = NbtUtils.readBlockPos(nbt.getCompound(MASTER_POS_KEY));
 
             // 读取相对坐标
-            BlockPos relativePos = NbtHelper.toBlockPos(nbt.getCompound(RELATIVE_POS_KEY));
+            BlockPos relativePos = NbtUtils.readBlockPos(nbt.getCompound(RELATIVE_POS_KEY));
 
             // 读取基础方块
             String blockId = nbt.getString(BASE_BLOCK_KEY);
-            Block baseBlock = net.minecraft.registry.Registries.BLOCK.get(Identifier.tryParse(blockId));
+            Block baseBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(ResourceLocation.tryParse(blockId));
 
             // 查找对应的CubeBlockPile（服务端引用）
             CubeBlockPile cubeBlockPile = CubeBlockPileManager.findCubeBlockPile(world, masterPos);
@@ -154,17 +154,17 @@ public class ServerCubeBlockPileReference implements CubeBlockPileReference {
 
     @Override
     @NotNull
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag nbt = new CompoundTag();
 
         // 主方块坐标
-        nbt.put(MASTER_POS_KEY, NbtHelper.fromBlockPos(cubeBlockPile.getMasterPos()));
+        nbt.put(MASTER_POS_KEY, NbtUtils.writeBlockPos(cubeBlockPile.getMasterPos()));
 
         // 相对坐标
-        nbt.put(RELATIVE_POS_KEY, NbtHelper.fromBlockPos(relativePos));
+        nbt.put(RELATIVE_POS_KEY, NbtUtils.writeBlockPos(relativePos));
 
         // 基础方块
-        nbt.putString(BASE_BLOCK_KEY, net.minecraft.registry.Registries.BLOCK.getId(cubeBlockPile.getBaseBlock()).toString());
+        nbt.putString(BASE_BLOCK_KEY, net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(cubeBlockPile.getBaseBlock()).toString());
 
         // 结构尺寸
         nbt.putInt(STRUCTURE_WIDTH_KEY, getStructureWidth());
@@ -196,7 +196,7 @@ public class ServerCubeBlockPileReference implements CubeBlockPileReference {
         if (blockEntity == null) {
             return false;
         }
-        return matchesBlockState(blockEntity.getCachedState());
+        return matchesBlockState(blockEntity.getBlockState());
     }
 
     @Override

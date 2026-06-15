@@ -1,6 +1,6 @@
 package org.twcore.api.animation;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import java.util.function.Consumer;
 
@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  *   <li>记录是否曾启动过 {@link #hasProcess()}</li>
  * </ul>
  * </p>
- * 区分于{@link net.minecraft.entity.AnimationState}
+ * 区分于{@link net.minecraft.world.entity.AnimationState}
  */
 public class EnhancedAnimationState {
     private static final long STOPPED = Long.MAX_VALUE;
@@ -99,7 +99,7 @@ public class EnhancedAnimationState {
      */
     public void update(float progress, float speedMultiplier) {
         if (!isRunning()) return;
-        long now = MathHelper.lfloor(progress * 1000.0F / 20.0F);
+        long now = Mth.lfloor(progress * 1000.0F / 20.0F);
         long delta = now - this.updatedAt;
         if (delta > 0) {
             long step = (long)((float)delta * speedMultiplier);

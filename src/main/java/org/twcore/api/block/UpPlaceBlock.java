@@ -1,46 +1,46 @@
 package org.twcore.api.block;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * 可放置物品的方块基类，提供统一的物品放置和取出交互机制。
  * <p>
- * 该方块通过与实现{@link Inventory}接口的方块实体配合，允许玩家在方块上放置和取出物品。
+ * 该方块通过与实现{@link Container}接口的方块实体配合，允许玩家在方块上放置和取出物品。
  * 支持自定义放置和取出条件、音效以及物品的视觉表现。
  * </p>
  *
  * @see UpPlaceBlockEntity
  */
-public abstract class UpPlaceBlock extends BlockWithEntity {
+public abstract class UpPlaceBlock extends BaseEntityBlock {
     /**
      * 方块交互音效配置
      */
     public final UpSounds upSounds;
 
-    public UpPlaceBlock(Settings settings, UpSounds upSounds) {
+    public UpPlaceBlock(Properties settings, UpSounds upSounds) {
         super(settings);
         this.upSounds = upSounds;
     }
 
-    public UpPlaceBlock(Settings settings) {
+    public UpPlaceBlock(Properties settings) {
         this(settings, UpSounds.DYNAMIC);
     }
 
@@ -51,14 +51,14 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
      * </p>
      */
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
+    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof Inventory inventory) {
-                ItemScatterer.spawn(world, pos, inventory);
-                world.updateComparators(pos, this);
+            if (blockEntity instanceof Container inventory) {
+                Containers.dropContents(world, pos, inventory);
+                world.updateNeighbourForOutputSignal(pos, this);
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
+            super.onRemove(state, world, pos, newState, moved);
         }
     }
 
@@ -70,10 +70,10 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
      * </p>
      */
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         BlockEntity entity = world.getBlockEntity(pos);
         if (entity instanceof UpPlaceBlockEntity blockEntity && !blockEntity.isEmpty()) {
-            return VoxelShapes.union(
+            return Shapes.or(
                     getBaseShape(state, world, pos, context),
                     blockEntity.getContentShape(state, world, pos, context)
             );
@@ -93,11 +93,11 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
      * @param context 形状计算上下文
      * @return 方块的基准轮廓形状
      */
-    public abstract VoxelShape getBaseShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context);
+    public abstract VoxelShape getBaseShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context);
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        ItemStack handStack = player.getStackInHand(hand);
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack handStack = player.getItemInHand(hand);
         BlockEntity blockEntity = world.getBlockEntity(pos);
 
         if (blockEntity instanceof UpPlaceBlockEntity upPlaceBlockEntity) {
@@ -120,7 +120,7 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
             }
         }
 
-        return ActionResult.FAIL;
+        return InteractionResult.FAIL;
     }
 
     /**
@@ -173,8 +173,8 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
          * 兜底音效为石头放置/破坏音效。
          */
         public static final UpSounds DYNAMIC = new UpSounds(
-                SoundEvents.BLOCK_STONE_PLACE,
-                SoundEvents.BLOCK_STONE_BREAK
+                SoundEvents.STONE_PLACE,
+                SoundEvents.STONE_BREAK
         );
 
         /**
@@ -185,7 +185,7 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
          * @param pos          播放位置
          * @param isPlaceSound true 播放放置音效，false 播放取出音效
          */
-        public void playSound(World world, BlockPos pos, boolean isPlaceSound) {
+        public void playSound(Level world, BlockPos pos, boolean isPlaceSound) {
             if (isPlaceSound) {
                 playPlaceSound(world, pos);
             } else {
@@ -194,16 +194,16 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
         }
 
         /** 播放放置固定音效（服务端，音效非空时） */
-        public void playPlaceSound(World world, BlockPos pos) {
-            if (placeSound != null && !world.isClient) {
-                world.playSound(null, pos, placeSound, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        public void playPlaceSound(Level world, BlockPos pos) {
+            if (placeSound != null && !world.isClientSide) {
+                world.playSound(null, pos, placeSound, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         }
 
         /** 播放取出固定音效（服务端，音效非空时） */
-        public void playFetchSound(World world, BlockPos pos) {
-            if (fetchSound != null && !world.isClient) {
-                world.playSound(null, pos, fetchSound, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        public void playFetchSound(Level world, BlockPos pos) {
+            if (fetchSound != null && !world.isClientSide) {
+                world.playSound(null, pos, fetchSound, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         }
     }

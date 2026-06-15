@@ -1,9 +1,9 @@
 package org.twcore.api.process;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.twcore.process.playeraction.PlayerActionFactory;
 import org.twcore.process.step.StepExecutionContext;
 
@@ -114,7 +114,7 @@ public abstract class PlayerAction {
      *
      * @return 操作的显示名称
      */
-    public abstract Text getDisplayName();
+    public abstract Component getDisplayName();
 
     /**
      * 检查操作是否有效。
@@ -123,7 +123,7 @@ public abstract class PlayerAction {
      * @param pos 位置
      * @return 如果操作在当前上下文中有效则返回true
      */
-    public boolean isValid(World world, BlockPos pos) {
+    public boolean isValid(Level world, BlockPos pos) {
         return true;
     }
 

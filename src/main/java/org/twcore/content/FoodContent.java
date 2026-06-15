@@ -1,12 +1,12 @@
 package org.twcore.content;
 
-import net.minecraft.item.FoodComponent;
+import net.minecraft.world.food.FoodProperties;
 
 /**
  * 表示可以食用的内容物
  */
 public class FoodContent extends Content{
-    private final FoodComponent foodComponent;
+    private final FoodProperties foodComponent;
 
     /**
      * 创建一个内容物类型实例。
@@ -15,7 +15,7 @@ public class FoodContent extends Content{
      * @param foodComponent 内容物的食物属性
      * @throws NullPointerException 如果id为null
      */
-    public FoodContent(String category, FoodComponent foodComponent) {
+    public FoodContent(String category, FoodProperties foodComponent) {
         super(category);
         this.foodComponent = foodComponent;
     }
@@ -23,7 +23,7 @@ public class FoodContent extends Content{
     /**
      * 获取内容物对应的食物组件。
      */
-    public FoodComponent getFoodComponent() {
+    public FoodProperties getFoodComponent() {
         return foodComponent;
     }
 }

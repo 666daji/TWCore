@@ -1,9 +1,9 @@
 package org.twcore.container;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.twcore.content.Content;
@@ -39,7 +39,7 @@ public abstract class ContainerType {
     public static class ContainerSettings {
         private final Item emptyItem;
         private int baseCapacity = 1;
-        private SoundEvent useSound = SoundEvents.ITEM_BOTTLE_FILL;
+        private SoundEvent useSound = SoundEvents.BOTTLE_FILL;
 
         public ContainerSettings(Item emptyItem) {
             this.emptyItem = Objects.requireNonNull(emptyItem, "Empty container item cannot be null");

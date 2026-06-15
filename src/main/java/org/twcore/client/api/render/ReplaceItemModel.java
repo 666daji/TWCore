@@ -1,16 +1,16 @@
 package org.twcore.client.api.render;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedModelManager;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.client.util.ModelIdentifier;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -69,12 +69,12 @@ public interface ReplaceItemModel {
      * @param modelId 新的模型ID
      * @return 替换器函数
      */
-    static ReplaceItemModel createSimpleReplacer(Identifier modelId) {
+    static ReplaceItemModel createSimpleReplacer(ResourceLocation modelId) {
         return context -> {
-            BakedModelManager modelManager = context.modelManager();
+            ModelManager modelManager = context.modelManager();
             if (modelManager != null) {
                 BakedModel newModel = modelManager.getModel(
-                        ModelIdentifier.ofVanilla(
+                        ModelResourceLocation.vanilla(
                                 modelId.getPath(), "inventory"
                         )
                 );
@@ -90,14 +90,14 @@ public interface ReplaceItemModel {
      * @return 替换器函数
      */
     static ReplaceItemModel createConditionalReplacer(
-            Function<ModelTransformationMode, Identifier> modeMapper) {
+            Function<ItemDisplayContext, ResourceLocation> modeMapper) {
         return context -> {
-            Identifier modelId = modeMapper.apply(context.renderMode());
+            ResourceLocation modelId = modeMapper.apply(context.renderMode());
             if (modelId != null) {
-                BakedModelManager modelManager = context.modelManager();
+                ModelManager modelManager = context.modelManager();
                 if (modelManager != null) {
                     BakedModel newModel = modelManager.getModel(
-                            ModelIdentifier.ofVanilla(
+                            ModelResourceLocation.vanilla(
                                     modelId.getPath(), "inventory"
                             )
                     );
@@ -120,55 +120,55 @@ public interface ReplaceItemModel {
     /**
      * 替换上下文类，包含替换模型所需的所有信息
      */
-    record ReplaceContext(ItemStack stack, ModelTransformationMode renderMode, boolean leftHanded,
-                          BakedModel originalModel, BakedModelManager modelManager, World world, MatrixStack matrices,
-                          VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    record ReplaceContext(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded,
+                          BakedModel originalModel, ModelManager modelManager, Level world, PoseStack matrices,
+                          MultiBufferSource vertexConsumers, int light, int overlay) {
 
-        public ClientWorld getClientWorld() {
-            return world instanceof ClientWorld ? (ClientWorld) world : null;
+        public ClientLevel getClientWorld() {
+            return world instanceof ClientLevel ? (ClientLevel) world : null;
         }
 
         /**
          * 判断是否在GUI中渲染
          */
         public boolean isGuiRender() {
-            return renderMode == ModelTransformationMode.GUI;
+            return renderMode == ItemDisplayContext.GUI;
         }
 
         /**
          * 判断是否在第一人称手中渲染
          */
         public boolean isFirstPersonRender() {
-            return renderMode.isFirstPerson();
+            return renderMode.firstPerson();
         }
 
         /**
          * 判断是否在第三人称手中渲染
          */
         public boolean isThirdPersonRender() {
-            return renderMode == ModelTransformationMode.THIRD_PERSON_LEFT_HAND ||
-                    renderMode == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND;
+            return renderMode == ItemDisplayContext.THIRD_PERSON_LEFT_HAND ||
+                    renderMode == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
         }
 
         /**
          * 判断是否在地面渲染
          */
         public boolean isGroundRender() {
-            return renderMode == ModelTransformationMode.GROUND;
+            return renderMode == ItemDisplayContext.GROUND;
         }
 
         /**
          * 判断是否在固定位置渲染（如展示框）
          */
         public boolean isFixedRender() {
-            return renderMode == ModelTransformationMode.FIXED;
+            return renderMode == ItemDisplayContext.FIXED;
         }
 
         /**
          * 判断是否在头部渲染（如头盔）
          */
         public boolean isHeadRender() {
-            return renderMode == ModelTransformationMode.HEAD;
+            return renderMode == ItemDisplayContext.HEAD;
         }
     }
 }

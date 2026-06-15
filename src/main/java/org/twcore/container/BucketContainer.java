@@ -1,6 +1,6 @@
 package org.twcore.container;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.twcore.content.Content;
 import org.twcore.registry.Contents;
 
@@ -12,7 +12,7 @@ public class BucketContainer extends AbstractMappedContainer {
     @Override
     public boolean matches(ItemStack stack) {
         // 检查是否是空桶或支持的桶装物品
-        return stack.isOf(getEmptyItem()) || supportsItem(stack.getItem());
+        return stack.is(getEmptyItem()) || supportsItem(stack.getItem());
     }
 
     @Override

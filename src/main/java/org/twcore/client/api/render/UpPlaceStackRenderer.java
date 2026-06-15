@@ -1,24 +1,24 @@
 package org.twcore.client.api.render;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedModelManager;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.random.Random;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.twcore.api.block.UpPlaceBlock;
 
 import java.util.HashMap;
@@ -177,10 +177,10 @@ public interface UpPlaceStackRenderer {
     record RenderContext(
             ItemStack stack,
             BlockEntity entity,
-            BlockEntityRendererFactory.Context entityContext,
+            BlockEntityRendererProvider.Context entityContext,
             float tickDelta,
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
+            PoseStack matrices,
+            MultiBufferSource vertexConsumers,
             int light,
             int overlay
     ) {
@@ -194,8 +194,8 @@ public interface UpPlaceStackRenderer {
          * @return 方块的朝向
          */
         public Direction getFacing() {
-            if (entity.getCachedState().contains(Properties.HORIZONTAL_FACING)) {
-                return entity.getCachedState().get(Properties.HORIZONTAL_FACING);
+            if (entity.getBlockState().hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                return entity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
             }
             return Direction.EAST;
         }
@@ -209,15 +209,15 @@ public interface UpPlaceStackRenderer {
          */
         public BlockState getDefaultBlockState() {
             Item item = stack.getItem();
-            BlockState blockState = Block.getBlockFromItem(item).getDefaultState();
+            BlockState blockState = Block.byItem(item).defaultBlockState();
 
             if (blockState == null) {
-                return Blocks.AIR.getDefaultState();
+                return Blocks.AIR.defaultBlockState();
             }
 
             // 处理其他方块，检查是否有水平朝向属性
-            if (blockState.contains(Properties.HORIZONTAL_FACING)) {
-                return blockState.with(Properties.HORIZONTAL_FACING, getFacing());
+            if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                return blockState.setValue(BlockStateProperties.HORIZONTAL_FACING, getFacing());
             }
 
             return blockState;
@@ -234,14 +234,14 @@ public interface UpPlaceStackRenderer {
          */
         public void renderBlockState(BlockState blockState) {
             if (blockState.getBlock() != Blocks.AIR) {
-                entityContext.getRenderManager().renderBlock(
+                entityContext.getBlockRenderDispatcher().renderBatched(
                         blockState,
-                        entity.getPos(),
-                        entity.getWorld(),
+                        entity.getBlockPos(),
+                        entity.getLevel(),
                         matrices,
-                        vertexConsumers.getBuffer(RenderLayers.getBlockLayer(blockState)),
+                        vertexConsumers.getBuffer(ItemBlockRenderTypes.getChunkRenderType(blockState)),
                         true,
-                        Random.create()
+                        RandomSource.create()
                 );
             }
         }
@@ -253,17 +253,17 @@ public interface UpPlaceStackRenderer {
          * @param state 占位的方块状态
          */
         public void renderCustomModel(BakedModel model, BlockState state) {
-            entityContext().getRenderManager().getModelRenderer().render(
-                    entity().getWorld(),
+            entityContext().getBlockRenderDispatcher().getModelRenderer().tesselateBlock(
+                    entity().getLevel(),
                     model,
                     state,
-                    entity().getPos(),
+                    entity().getBlockPos(),
                     matrices(),
-                    vertexConsumers().getBuffer(RenderLayer.getCutout()),
+                    vertexConsumers().getBuffer(RenderType.cutout()),
                     true,
-                    Random.create(),
-                    state.getRenderingSeed(entity().getPos()),
-                    OverlayTexture.DEFAULT_UV
+                    RandomSource.create(),
+                    state.getSeed(entity().getBlockPos()),
+                    OverlayTexture.NO_OVERLAY
             );
         }
 
@@ -271,7 +271,7 @@ public interface UpPlaceStackRenderer {
          * 以物品形式渲染当前物品堆栈。
          */
         public void renderItem() {
-            matrices.push();
+            matrices.pushPose();
 
             // 将物品放置在方块中心上方
             matrices.translate(0.5, 0, 0.5);
@@ -280,25 +280,25 @@ public interface UpPlaceStackRenderer {
             matrices.scale(0.7f, 0.7f, 0.7f);
 
             // 沿X轴旋转90度，使物品平放
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90));
+            matrices.mulPose(Axis.XP.rotationDegrees(90));
 
             // 根据方块朝向旋转物品
             Direction facing = getFacing();
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(facing.asRotation()));
+            matrices.mulPose(Axis.YP.rotationDegrees(facing.toYRot()));
 
             // 渲染物品
-            entityContext.getItemRenderer().renderItem(
+            entityContext.getItemRenderer().renderStatic(
                     stack,
-                    ModelTransformationMode.FIXED,
+                    ItemDisplayContext.FIXED,
                     light,
                     overlay,
                     matrices,
                     vertexConsumers,
-                    entity.getWorld(),
+                    entity.getLevel(),
                     0
             );
 
-            matrices.pop();
+            matrices.popPose();
         }
 
         /**
@@ -374,10 +374,10 @@ public interface UpPlaceStackRenderer {
          *
          * @return 模型管理器
          */
-        public BakedModelManager getModelManager() {
+        public ModelManager getModelManager() {
             return entityContext()
-                    .getRenderManager()
-                    .getModels()
+                    .getBlockRenderDispatcher()
+                    .getBlockModelShaper()
                     .getModelManager();
         }
     }

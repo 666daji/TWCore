@@ -2,8 +2,8 @@ package org.twcore.container;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.twcore.TWCore;
@@ -54,8 +54,8 @@ public abstract class AbstractMappedContainer extends ContainerType {
     public void registerContentMapping(Content content, Item item) {
         if (!canContain(content)) {
             TWCore.LOGGER.warn("Attempted to register invalid content to {} container: {}",
-                    TWRegistries.CONTAINER_TYPE.getId(this),
-                    TWRegistries.CONTENT.getId(content));
+                    TWRegistries.CONTAINER_TYPE.get().getKey(this),
+                    TWRegistries.CONTENT.get().getKey(content));
             return;
         }
 
@@ -79,7 +79,7 @@ public abstract class AbstractMappedContainer extends ContainerType {
      * @return 如果是空容器则返回true
      */
     protected boolean isEmptyContainer(ItemStack stack) {
-        return stack.isOf(getEmptyItem());
+        return stack.is(getEmptyItem());
     }
 
     /**
@@ -180,8 +180,8 @@ public abstract class AbstractMappedContainer extends ContainerType {
         if (content == null) {
             // 清空容器：用空容器物品替换，保留NBT
             ItemStack result = new ItemStack(getEmptyItem(), stack.getCount());
-            if (stack.hasNbt()) {
-                result.setNbt(stack.getNbt().copy());
+            if (stack.hasTag()) {
+                result.setTag(stack.getTag().copy());
             }
             return result;
         }
@@ -190,14 +190,14 @@ public abstract class AbstractMappedContainer extends ContainerType {
         Item mappedItem = contentBiMap.inverse().get(content);
         if (mappedItem == null) {
             TWCore.LOGGER.warn("No item mapping found for content: {} in container {}",
-                    TWRegistries.CONTENT.getId(content),
-                    TWRegistries.CONTAINER_TYPE.getId(this));
+                    TWRegistries.CONTENT.get().getKey(content),
+                    TWRegistries.CONTAINER_TYPE.get().getKey(this));
             return stack.copy();
         }
 
         ItemStack result = new ItemStack(mappedItem, stack.getCount());
-        if (stack.hasNbt()) {
-            result.setNbt(stack.getNbt().copy());
+        if (stack.hasTag()) {
+            result.setTag(stack.getTag().copy());
         }
         return result;
     }
@@ -218,13 +218,13 @@ public abstract class AbstractMappedContainer extends ContainerType {
     public ItemStack createItemStack(Content content, int amount) {
         if (!canContain(content)) {
             throw new IllegalArgumentException("Container cannot contain content: " +
-                    TWRegistries.CONTENT.getId(content));
+                    TWRegistries.CONTENT.get().getKey(content));
         }
 
         Item item = contentBiMap.inverse().get(content);
         if (item == null) {
             throw new IllegalArgumentException("No item mapping found for content: " +
-                    TWRegistries.CONTENT.getId(content));
+                    TWRegistries.CONTENT.get().getKey(content));
         }
 
         return new ItemStack(item, amount);

@@ -1,7 +1,7 @@
 package org.twcore.api.content;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.twcore.container.ContainerType;
@@ -24,7 +24,7 @@ import java.util.Optional;
  *         每个内容物拥有一个分类（如 {@code "liquid"}、{@code "soup"}），由 {@code final String category} 字段存储。</li>
  *     <li><b>{@link ContainerType}</b> – 容器类型，定义了容器的物理属性（空物品、容量、音效），
  *         以及如何匹配物品堆栈、如何提取/替换内容物、判断兼容性等抽象行为。</li>
- *     <li><b>{@link TWRegistries}</b> – 基于原版 {@link net.minecraft.registry.Registry} 的注册表，
+ *     <li><b>{@link TWRegistries}</b> – 基于原版 {@link net.minecraft.core.Registry} 的注册表，
  *         管理所有 {@code Content} 和 {@code ContainerType} 实例。</li>
  *     <li><b>{@link ContainerStack}</b> – 容器分析结果的绑定对象，也是日常操作的核心对象。
  *         它封装了一个具体的物品堆栈、识别出的容器类型以及提取到的内容物，
@@ -72,7 +72,7 @@ import java.util.Optional;
  * <ul>
  *     <li>所有 {@link Content} 和 {@link ContainerType} 实例必须在模组初始化时通过原版 {@code Registry.register} 注册到
  *         {@link TWRegistries#CONTENT} 和 {@link TWRegistries#CONTAINER_TYPE}，否则分析功能无法发现它们。</li>
- *     <li>{@link org.twcore.content.ContentCategories} 需要手动调用 {@code init()} 进行初始化，建议在注册完成后执行一次。</li>
+ *     <li>{@link ContentCategories} 需要手动调用 {@code init()} 进行初始化，建议在注册完成后执行一次。</li>
  *     <li>{@link ContainerType#replaceContent(ItemStack, Content)} 的实现必须遵守“返回新堆栈，不修改原堆栈”的契约。</li>
  *     <li>本类中的工厂方法不接受非法参数，容器兼容性检查在内部完成，不满足时抛出 {@link IllegalArgumentException}。</li>
  * </ul>
@@ -80,7 +80,7 @@ import java.util.Optional;
  * @see ContainerStack
  * @see ContainerType
  * @see Content
- * @see org.twcore.content.ContentCategories
+ * @see ContentCategories
  */
 public final class ContainerUtil {
 
@@ -98,7 +98,7 @@ public final class ContainerUtil {
             return Optional.empty();
         }
 
-        for (ContainerType container : TWRegistries.CONTAINER_TYPE) {
+        for (ContainerType container : TWRegistries.CONTAINER_TYPE.get()) {
             if (container.matches(stack)) {
                 Content content = container.extractContent(stack);
                 return Optional.of(new ContainerStack(container, content, stack));
@@ -127,8 +127,8 @@ public final class ContainerUtil {
      * @return 空容器物品堆栈，若ID无效则返回 ItemStack.EMPTY
      */
     @NotNull
-    public static ItemStack createEmptyContainer(@NotNull Identifier containerId, int amount) {
-        ContainerType container = TWRegistries.CONTAINER_TYPE.get(containerId);
+    public static ItemStack createEmptyContainer(@NotNull ResourceLocation containerId, int amount) {
+        ContainerType container = TWRegistries.CONTAINER_TYPE.get().getValue(containerId);
         if (container == null) {
             return ItemStack.EMPTY;
         }
@@ -163,11 +163,11 @@ public final class ContainerUtil {
      * @return 填充后的物品堆栈，若ID无效则返回 ItemStack.EMPTY
      */
     @NotNull
-    public static ItemStack createFilledContainer(@NotNull Identifier containerId,
-                                                  @NotNull Identifier contentId,
+    public static ItemStack createFilledContainer(@NotNull ResourceLocation containerId,
+                                                  @NotNull ResourceLocation contentId,
                                                   int amount) {
-        ContainerType container = TWRegistries.CONTAINER_TYPE.get(containerId);
-        Content content = TWRegistries.CONTENT.get(contentId);
+        ContainerType container = TWRegistries.CONTAINER_TYPE.get().getValue(containerId);
+        Content content = TWRegistries.CONTENT.get().getValue(contentId);
         if (container == null || content == null) {
             return ItemStack.EMPTY;
         }

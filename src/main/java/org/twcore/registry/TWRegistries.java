@@ -1,26 +1,16 @@
 package org.twcore.registry;
 
-import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
-import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
-import org.twcore.TWCore;
-import org.twcore.container.ContainerType;
+import net.minecraftforge.registries.*;
 import org.twcore.content.Content;
+import org.twcore.container.ContainerType;
+import java.util.function.Supplier;
 
 public class TWRegistries {
-    public static Registry<Content> CONTENT = of("content");
+    public static final Supplier<IForgeRegistry<Content>> CONTENT =
+            Contents.CONTENT.makeRegistry(() -> new RegistryBuilder<Content>().hasTags());
 
-    public static Registry<ContainerType> CONTAINER_TYPE = of("container_type");
-
-    public static <T> Registry<T> of(String id) {
-        RegistryKey<Registry<T>> key = RegistryKey.ofRegistry(new Identifier(TWCore.MOD_ID, id));
-
-        return FabricRegistryBuilder.createSimple(key)
-                .attribute(RegistryAttribute.SYNCED)
-                .buildAndRegister();
-    }
+    public static final Supplier<IForgeRegistry<ContainerType>> CONTAINER_TYPE =
+            ContainerTypes.CONTAINER_TYPE.makeRegistry(() -> new RegistryBuilder<ContainerType>().hasTags());
 
     public static void registerAll() {}
 }

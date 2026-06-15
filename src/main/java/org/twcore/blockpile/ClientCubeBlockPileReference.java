@@ -1,11 +1,11 @@
 package org.twcore.blockpile;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
@@ -29,13 +29,13 @@ public class ClientCubeBlockPileReference implements CubeBlockPileReference {
     private final int structureDepth;
     private boolean disposed = false;
 
-    public ClientCubeBlockPileReference(@NotNull NbtCompound nbt) {
+    public ClientCubeBlockPileReference(@NotNull CompoundTag nbt) {
         // 从NBT反序列化
-        this.masterWorldPos = NbtHelper.toBlockPos(nbt.getCompound(MASTER_POS_KEY));
-        this.relativePos = NbtHelper.toBlockPos(nbt.getCompound(RELATIVE_POS_KEY));
+        this.masterWorldPos = NbtUtils.readBlockPos(nbt.getCompound(MASTER_POS_KEY));
+        this.relativePos = NbtUtils.readBlockPos(nbt.getCompound(RELATIVE_POS_KEY));
 
         String blockId = nbt.getString(BASE_BLOCK_KEY);
-        this.baseBlock = net.minecraft.registry.Registries.BLOCK.get(net.minecraft.util.Identifier.tryParse(blockId));
+        this.baseBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.tryParse(blockId));
 
         // 读取结构尺寸
         this.structureWidth = nbt.getInt(STRUCTURE_WIDTH_KEY);
@@ -58,7 +58,7 @@ public class ClientCubeBlockPileReference implements CubeBlockPileReference {
             throw new IllegalArgumentException("Cannot create client reference from disposed server reference");
         }
 
-        NbtCompound nbt = serverReference.toNbt();
+        CompoundTag nbt = serverReference.toNbt();
         // 确保包含结构尺寸信息
         if (!nbt.contains(STRUCTURE_WIDTH_KEY)) {
             nbt.putInt(STRUCTURE_WIDTH_KEY, serverReference.getStructureWidth());
@@ -71,18 +71,18 @@ public class ClientCubeBlockPileReference implements CubeBlockPileReference {
 
     @Override
     @NotNull
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag nbt = new CompoundTag();
 
         // 主方块坐标
-        nbt.put(MASTER_POS_KEY, NbtHelper.fromBlockPos(masterWorldPos));
+        nbt.put(MASTER_POS_KEY, NbtUtils.writeBlockPos(masterWorldPos));
 
         // 相对坐标
-        nbt.put(RELATIVE_POS_KEY, NbtHelper.fromBlockPos(relativePos));
+        nbt.put(RELATIVE_POS_KEY, NbtUtils.writeBlockPos(relativePos));
 
         // 基础方块
         if (baseBlock != null) {
-            nbt.putString(BASE_BLOCK_KEY, net.minecraft.registry.Registries.BLOCK.getId(baseBlock).toString());
+            nbt.putString(BASE_BLOCK_KEY, net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(baseBlock).toString());
         } else {
             nbt.putString(BASE_BLOCK_KEY, "minecraft:air");
         }
@@ -113,7 +113,7 @@ public class ClientCubeBlockPileReference implements CubeBlockPileReference {
         if (blockEntity == null) {
             return false;
         }
-        return matchesBlockState(blockEntity.getCachedState());
+        return matchesBlockState(blockEntity.getBlockState());
     }
 
     @Override

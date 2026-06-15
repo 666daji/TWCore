@@ -1,10 +1,10 @@
 package org.twcore.api.blockpile;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.twcore.blockpile.ClientCubeBlockPileReference;
@@ -57,7 +57,7 @@ public interface CubeBlockPileReference {
      * @return 包含引用数据的NBT化合物
      */
     @NotNull
-    NbtCompound toNbt();
+    CompoundTag toNbt();
 
     /**
      * 检查传入的方块是否与方块堆结构的基础方块相同。

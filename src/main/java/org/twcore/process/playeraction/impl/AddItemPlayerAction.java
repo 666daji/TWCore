@@ -1,11 +1,11 @@
 package org.twcore.process.playeraction.impl;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.twcore.api.process.PlayerAction;
 import org.twcore.process.step.StepExecutionContext;
 
@@ -37,12 +37,12 @@ public class AddItemPlayerAction extends PlayerAction {
             throw new IllegalArgumentException("The Add Item parameter requires the Item ID parameter");
         }
 
-        Identifier itemId = Identifier.tryParse(params[0]);
+        ResourceLocation itemId = ResourceLocation.tryParse(params[0]);
         if (itemId == null) {
             throw new IllegalArgumentException("Invalid item ID: " + params[0]);
         }
 
-        Item item = Registries.ITEM.get(itemId);
+        Item item = BuiltInRegistries.ITEM.get(itemId);
         if (item == Items.AIR) {
             throw new IllegalArgumentException("No item found: " + itemId);
         }
@@ -100,7 +100,7 @@ public class AddItemPlayerAction extends PlayerAction {
 
     @Override
     public String toString() {
-        Identifier itemId = Registries.ITEM.getId(item);
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
         return String.format("add_item|%s|%d", itemId, count);
     }
 
@@ -114,8 +114,8 @@ public class AddItemPlayerAction extends PlayerAction {
         // 如果不是创造模式，消耗玩家手持物品
         if (!context.isCreateMode()) {
             ItemStack heldItem = context.getHeldItemStack();
-            if (!heldItem.isEmpty() && heldItem.isOf(item)) {
-                heldItem.decrement(count);
+            if (!heldItem.isEmpty() && heldItem.is(item)) {
+                heldItem.shrink(count);
             }
         }
 
@@ -139,7 +139,7 @@ public class AddItemPlayerAction extends PlayerAction {
      */
     @Override
     public String getCode() {
-        Identifier itemId = Registries.ITEM.getId(item);
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
 
         // 1. 操作类型固定位: "i" 表示添加物品
         StringBuilder code = new StringBuilder("i");
@@ -173,8 +173,8 @@ public class AddItemPlayerAction extends PlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
-        return Text.translatable("player_action.add_item", item.getName(), count);
+    public Component getDisplayName() {
+        return Component.translatable("player_action.add_item", item.getDescription(), count);
     }
 
     @Override

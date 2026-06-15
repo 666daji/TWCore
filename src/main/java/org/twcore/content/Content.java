@@ -1,7 +1,7 @@
 package org.twcore.content;
 
-import net.minecraft.text.Text;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.twcore.registry.TWRegistries;
 
@@ -44,7 +44,7 @@ public class Content {
     @NotNull
     public String getDisplayTranslationKey() {
         if (this.translationKey == null) {
-            this.translationKey = Util.createTranslationKey("content", TWRegistries.CONTENT.getId(this));
+            this.translationKey = Util.makeDescriptionId("content", TWRegistries.CONTENT.get().getKey(this));
         }
         return this.translationKey;
     }
@@ -52,8 +52,8 @@ public class Content {
     /**
      * 获取内容物的显示文本。
      */
-    public Text getDisplayName() {
-        return Text.translatable(getDisplayTranslationKey());
+    public Component getDisplayName() {
+        return Component.translatable(getDisplayTranslationKey());
     }
 
     /**

@@ -1,14 +1,14 @@
-package org.twcore.client.mixin;
+package org.twcore.mixin.client;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.item.ItemModels;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemModelShaper;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,21 +19,21 @@ import org.twcore.client.api.render.ReplaceItemModel;
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin {
 
-    @Shadow @Final private ItemModels models;
-    @Shadow @Final private MinecraftClient client;
+    @Shadow @Final private ItemModelShaper itemModelShaper;
+    @Shadow @Final private Minecraft minecraft;
 
     @ModifyVariable(
-            method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformationMode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/client/render/model/BakedModel;)V",
+            method = "render",
             at = @At("HEAD"),
             argsOnly = true
     )
     private BakedModel renderFlourItem(
             BakedModel originalModel,
             ItemStack stack,
-            ModelTransformationMode renderMode,
+            ItemDisplayContext renderMode,
             boolean leftHanded,
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
+            PoseStack matrices,
+            MultiBufferSource vertexConsumers,
             int light,
             int overlay,
             BakedModel model) {
@@ -43,7 +43,7 @@ public class ItemRendererMixin {
         }
 
         // 跳过三叉戟和望远镜的原版特殊处理
-        if (stack.isOf(Items.TRIDENT) || stack.isOf(Items.SPYGLASS)) {
+        if (stack.is(Items.TRIDENT) || stack.is(Items.SPYGLASS)) {
             return originalModel;
         }
 
@@ -54,8 +54,8 @@ public class ItemRendererMixin {
                     renderMode,
                     leftHanded,
                     originalModel,
-                    this.models.getModelManager(),
-                    this.client.world,
+                    this.itemModelShaper.getModelManager(),
+                    this.minecraft.level,
                     matrices,
                     vertexConsumers,
                     light,

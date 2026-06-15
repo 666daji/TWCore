@@ -1,10 +1,10 @@
 package org.twcore.api.blockpile;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
 import org.twcore.blockpile.CubeBlockPileManager;
@@ -49,10 +49,10 @@ public class CubeBlockPileHelper {
      * @see CubeBlockPileEntity
      * @see #performMultiRoundMerging(CubeBlockPile)
      * @apiNote 需要在使用了方块堆系统的对应方块类中重写
-     * {@link net.minecraft.block.AbstractBlock#onBlockAdded(BlockState, World, BlockPos, BlockState, boolean)}
+     * {@link net.minecraft.world.level.block.state.BlockBehaviour#onPlace(BlockState, Level, BlockPos, BlockState, boolean)}
      * 方法主动调用此方法。
      */
-    public static void onBlockPlaced(World world, BlockPos pos, Block coreBlock) {
+    public static void onBlockPlaced(Level world, BlockPos pos, Block coreBlock) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(pos, "Position cannot be null");
         Objects.requireNonNull(coreBlock, "Core block cannot be null");
@@ -87,10 +87,10 @@ public class CubeBlockPileHelper {
      * @param pos        被破坏的方块位置
      * @param coreBlock  核心方块类型
      * @apiNote 需要在使用了方块堆系统的对应方块类中重写
-     * {@link net.minecraft.block.AbstractBlock#onStateReplaced(BlockState, World, BlockPos, BlockState, boolean)}
+     * {@link net.minecraft.world.level.block.state.BlockBehaviour#onRemove(BlockState, Level, BlockPos, BlockState, boolean)}
      * 方法主动调用此方法。
      */
-    public static void onBlockBroken(World world, BlockPos pos, Block coreBlock) {
+    public static void onBlockBroken(Level world, BlockPos pos, Block coreBlock) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(pos, "Position cannot be null");
         Objects.requireNonNull(coreBlock, "Core block cannot be null");
@@ -120,10 +120,10 @@ public class CubeBlockPileHelper {
      * @param pos        受影响的核心方块位置
      * @param coreBlock  核心方块类型
      * @apiNote 需要在使用了方块堆系统的对应方块类中重写
-     * {@link net.minecraft.block.AbstractBlock#neighborUpdate(BlockState, World, BlockPos, Block, BlockPos, boolean)}
+     * {@link net.minecraft.world.level.block.state.BlockBehaviour#neighborChanged(BlockState, Level, BlockPos, Block, BlockPos, boolean)}
      * 方法主动调用此方法。
      */
-    public static void onNeighborUpdate(World world, BlockPos pos, Block coreBlock) {
+    public static void onNeighborUpdate(Level world, BlockPos pos, Block coreBlock) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(pos, "Position cannot be null");
         Objects.requireNonNull(coreBlock, "Core block cannot be null");
@@ -178,7 +178,7 @@ public class CubeBlockPileHelper {
 
                     if (merged != null) {
                         // 合并成功，更新引用
-                        updateBlockEntityReferences((World) merged.getWorld(), List.of(merged));
+                        updateBlockEntityReferences((Level) merged.getWorld(), List.of(merged));
 
                         current = merged;
                         mergedInThisRound = true;
@@ -211,7 +211,7 @@ public class CubeBlockPileHelper {
      * @param world        世界实例
      * @param cubeBlockPiles  需要更新引用的方块堆结构列表
      */
-    public static void updateBlockEntityReferences(World world, List<CubeBlockPile> cubeBlockPiles) {
+    public static void updateBlockEntityReferences(Level world, List<CubeBlockPile> cubeBlockPiles) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(cubeBlockPiles, "CubeBlockPiles list cannot be null");
 
@@ -230,7 +230,7 @@ public class CubeBlockPileHelper {
      * @param world       世界实例
      * @param cubeBlockPile  需要更新引用的方块堆结构
      */
-    public static void updateBlockEntityReferencesForCubeBlockPile(World world, CubeBlockPile cubeBlockPile) {
+    public static void updateBlockEntityReferencesForCubeBlockPile(Level world, CubeBlockPile cubeBlockPile) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(cubeBlockPile, "CubeBlockPile cannot be null");
 
@@ -263,13 +263,13 @@ public class CubeBlockPileHelper {
      * @param cubeBlockPile  关联的方块堆结构
      * @return 如果成功更新了引用返回true，否则返回false
      */
-    public static boolean updateBlockEntityReference(World world, BlockPos pos, CubeBlockPile cubeBlockPile) {
+    public static boolean updateBlockEntityReference(Level world, BlockPos pos, CubeBlockPile cubeBlockPile) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(pos, "Position cannot be null");
         Objects.requireNonNull(cubeBlockPile, "CubeBlockPile cannot be null");
 
         // 只在服务端处理
-        if (world.isClient) {
+        if (world.isClientSide) {
             return false;
         }
 
@@ -300,7 +300,7 @@ public class CubeBlockPileHelper {
      * @param center  区域中心位置
      * @param radius  扫描半径（曼哈顿距离）
      */
-    public static void forceUpdateReferencesInArea(World world, BlockPos center, int radius) {
+    public static void forceUpdateReferencesInArea(Level world, BlockPos center, int radius) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(center, "Center position cannot be null");
 
@@ -352,11 +352,11 @@ public class CubeBlockPileHelper {
      * @param world 世界实例
      * @param pos   方块位置
      */
-    public static void clearCubeBlockPileReference(World world, BlockPos pos) {
+    public static void clearCubeBlockPileReference(Level world, BlockPos pos) {
         Objects.requireNonNull(world, "World cannot be null");
         Objects.requireNonNull(pos, "Position cannot be null");
 
-        if (world.isClient) {
+        if (world.isClientSide) {
             return;
         }
 
@@ -371,7 +371,7 @@ public class CubeBlockPileHelper {
     /**
      * 创建单方块方块堆结构。
      */
-    public static CubeBlockPile createSingleBlockCubeBlockPile(World world, BlockPos pos, Block coreBlock) {
+    public static CubeBlockPile createSingleBlockCubeBlockPile(Level world, BlockPos pos, Block coreBlock) {
         try {
             return CubeBlockPile.builder()
                     .world(world)
@@ -389,7 +389,7 @@ public class CubeBlockPileHelper {
      */
     public static List<CubeBlockPile> findAdjacentCubeBlockPiles(CubeBlockPile cubeBlockPile) {
         List<CubeBlockPile> neighbors = new ArrayList<>();
-        World world = (World) cubeBlockPile.getWorld();
+        Level world = (Level) cubeBlockPile.getWorld();
         CubeBlockPile.PatternRange range = cubeBlockPile.getRange();
         BlockPos start = range.getStart();
         BlockPos end = range.getEnd();
@@ -406,12 +406,12 @@ public class CubeBlockPileHelper {
         checkDirection(neighbors, world, cubeBlockPile, eastFaceStart, eastFaceEnd);
 
         // 下方向
-        BlockPos downFaceStart = start.down();
+        BlockPos downFaceStart = start.below();
         BlockPos downFaceEnd = new BlockPos(end.getX(), start.getY() - 1, end.getZ());
         checkDirection(neighbors, world, cubeBlockPile, downFaceStart, downFaceEnd);
 
         // 上方向
-        BlockPos upFaceStart = end.up();
+        BlockPos upFaceStart = end.above();
         BlockPos upFaceEnd = new BlockPos(end.getX(), end.getY() + 1, end.getZ());
         checkDirection(neighbors, world, cubeBlockPile, upFaceStart, upFaceEnd);
 
@@ -431,7 +431,7 @@ public class CubeBlockPileHelper {
     /**
      * 在指定方向上查找相邻的方块堆结构。
      */
-    public static void checkDirection(List<CubeBlockPile> neighbors, World world, CubeBlockPile cubeBlockPile,
+    public static void checkDirection(List<CubeBlockPile> neighbors, Level world, CubeBlockPile cubeBlockPile,
                                       BlockPos faceStart, BlockPos faceEnd) {
         // 检查该方向上所有可能的位置
         for (int x = faceStart.getX(); x <= faceEnd.getX(); x++) {
