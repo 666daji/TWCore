@@ -18,7 +18,7 @@ import org.twcore.config.ConfigType;
  *         （{@link ConfigSide#COMMON}）。</li>
  *     <li>{@link #registerClientConfig(ConfigType)} —— 注册仅客户端配置
  *         （{@link ConfigSide#CLIENT}）。</li>
- *     <li>{@link #addDefaultOverride(String, String, ConfigInfluencer)}
+ *     <li>{@link #addDefaultOverride(String, String, Object)}
  *         —— 向任意已注册或尚未注册的目标配置提供默认值影响器。</li>
  * </ul>
  * </p>
@@ -32,7 +32,7 @@ import org.twcore.config.ConfigType;
  *
  * <h2>跨模组默认值叠加</h2>
  * <p>
- * 通过 {@link #addDefaultOverride(String, String, ConfigInfluencer)}
+ * 通过 {@link #addDefaultOverride(String, String, Object)}
  * 方法，模组可以为其他模组的配置添加影响器。注册阶段仅收集数据，
  * 不检查目标是否存在。所有检查与合并将在配置最终加载时由
  * {@link ConfigManager} 统一执行。无法匹配到已注册配置的影响器
@@ -134,14 +134,40 @@ public final class TwConfig {
 
     /**
      * 为目标配置添加一个默认值影响器。
-     * 注册阶段不做任何检查，仅在最终加载时由目标配置的所有者处理。
-     * 若目标配置最终未被任何模组注册，则影响器被静默丢弃。
+     * <p>
+     * 传入任意类型的 payload 数据，本方法会自动封装来源模组信息
+     * （当前 {@code modId} 及从 {@link TwModManager} 获取的版本等级）
+     * 为一个 {@link ConfigInfluencer} 并提交。
+     * </p>
+     * <p>
+     * 注意：{@code payload} 的类型必须是两个模组都能访问到的公共类型
+     * （例如原版 Minecraft 的类或 TW Core API 中定义的类型），
+     * 目标模组在默认值工厂中通过 {@code instanceof} 安全提取。
+     * </p>
      *
      * @param targetModId 目标配置所属模组的 ID
      * @param configName  目标配置的名称
-     * @param influencer  影响器，包含来源模组信息和不透明数据载体
+     * @param payload     影响器携带的数据，类型自动推断
+     * @param <T>         载荷类型
      */
-    public void addDefaultOverride(String targetModId, String configName, ConfigInfluencer influencer) {
+    public <T> void addDefaultOverride(String targetModId, String configName, T payload) {
+        int version = TwModManager.IMPL.getRegisteredVersion(modId);
+        ConfigInfluencer<T> influencer = new ConfigInfluencer<>() {
+            @Override
+            public String sourceModId() {
+                return modId;
+            }
+
+            @Override
+            public int sourceModVersion() {
+                return version;
+            }
+
+            @Override
+            public T payload() {
+                return payload;
+            }
+        };
         ConfigManager.addInfluencer(targetModId, configName, influencer);
     }
 }

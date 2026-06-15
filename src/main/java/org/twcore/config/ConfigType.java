@@ -15,10 +15,9 @@ import java.util.function.Function;
  *
  * <h2>默认值工厂</h2>
  * <p>
- * {@link #defaultFactory()} 接收一个 {@link ConfigInfluencer} 列表，
- * 该列表包含了所有其他模组通过 {@code TwConfig.addDefaultOverride()}
- * 提交的、且来源模组已注册的有效影响器。
- * 工厂方法负责将这些影响器应用到初始默认状态上，返回最终的默认配置数据。
+ * {@link #defaultFactory()} 接收一个 {@code List<ConfigInfluencer<?>>}，
+ * 即通配符类型的影响器列表。工厂方法内部应通过模式匹配或类型检查
+ * 提取特定类型的影响器，并将其应用到初始默认状态上，返回最终的默认配置数据。
  * 此设计保证了跨模组默认值叠加与加载顺序完全解耦。
  * </p>
  *
@@ -36,12 +35,11 @@ import java.util.function.Function;
  * @param side           配置所属端，默认为 {@link ConfigSide#COMMON}
  * @param <T>            配置数据类型
  * @see ConfigInfluencer
- * @see ConfigSide
  */
 public record ConfigType<T>(
         String name,
         Codec<T> codec,
-        Function<List<ConfigInfluencer>, T> defaultFactory,
+        Function<List<ConfigInfluencer<?>>, T> defaultFactory,
         @Nullable ConfigMigrator<T> migrator,
         ConfigSide side
 ) {
@@ -51,7 +49,7 @@ public record ConfigType<T>(
     public static <T> ConfigType<T> of(
             String name,
             Codec<T> codec,
-            Function<List<ConfigInfluencer>, T> defaultFactory,
+            Function<List<ConfigInfluencer<?>>, T> defaultFactory,
             @Nullable ConfigMigrator<T> migrator
     ) {
         return new ConfigType<>(name, codec, defaultFactory, migrator, ConfigSide.COMMON);
@@ -63,7 +61,7 @@ public record ConfigType<T>(
     public static <T> ConfigType<T> of(
             String name,
             Codec<T> codec,
-            Function<List<ConfigInfluencer>, T> defaultFactory,
+            Function<List<ConfigInfluencer<?>>, T> defaultFactory,
             @Nullable ConfigMigrator<T> migrator,
             ConfigSide side
     ) {

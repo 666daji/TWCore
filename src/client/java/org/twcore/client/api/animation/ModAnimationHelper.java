@@ -18,7 +18,7 @@ import java.util.Map;
 public class ModAnimationHelper {
 
     /**
-     * 对模型部件映射应用动画
+     * 对模型部件映射应用动画。
      *
      * @param modelParts 模型部件映射，键为骨骼名称，值为对应的 ModelPart
      * @param animation 要应用的动画
@@ -29,21 +29,11 @@ public class ModAnimationHelper {
     public static void animate(Map<String, ModelPart> modelParts, Animation animation, long runningTime, float scale, Vector3f tempVec) {
         float f = getRunningSeconds(animation, runningTime);
 
-        for (var entry : animation.boneAnimations().entrySet()) {
-            String boneName = entry.getKey();
-            ModelPart part = modelParts.get(boneName);
-
-            if (part != null) {
-                List<Transformation> transformations = entry.getValue();
-                for (Transformation transformation : transformations) {
-                    applyTransformation(part, transformation, f, scale, tempVec);
-                }
-            }
-        }
+        animate(modelParts, animation, scale, tempVec, f);
     }
 
     /**
-     * 对模型部件映射应用动画，支持部分时间
+     * 对模型部件映射应用动画，支持部分时间。
      *
      * @param modelParts 模型部件映射，键为骨骼名称，值为对应的 ModelPart
      * @param animation 要应用的动画
@@ -63,6 +53,13 @@ public class ModAnimationHelper {
         float totalTime = (effectiveTime + partialTime) / 1000.0F;
         float f = animation.looping() ? totalTime % animation.lengthInSeconds() : totalTime;
 
+        animate(modelParts, animation, scale, tempVec, f);
+    }
+
+    /**
+     * 对模型部件映射应用动画。
+     */
+    private static void animate(Map<String, ModelPart> modelParts, Animation animation, float scale, Vector3f tempVec, float f) {
         for (var entry : animation.boneAnimations().entrySet()) {
             String boneName = entry.getKey();
             ModelPart part = modelParts.get(boneName);
@@ -77,7 +74,7 @@ public class ModAnimationHelper {
     }
 
     /**
-     * 对单个模型部件应用变换
+     * 对单个模型部件应用变换。
      *
      * @param part 模型部件
      * @param transformation 变换
@@ -105,7 +102,7 @@ public class ModAnimationHelper {
     }
 
     /**
-     * 计算动画运行时间（秒）
+     * 计算动画运行时间（秒）。
      *
      * @param animation 动画
      * @param runningTime 运行时间（毫秒）
@@ -124,7 +121,7 @@ public class ModAnimationHelper {
     }
 
     /**
-     * 创建平移向量
+     * 创建平移向量。
      *
      * @param x X轴平移
      * @param y Y轴平移
@@ -136,7 +133,7 @@ public class ModAnimationHelper {
     }
 
     /**
-     * 创建旋转向量（角度转换为弧度）
+     * 创建旋转向量（角度转换为弧度）。
      *
      * @param x X轴旋转角度
      * @param y Y轴旋转角度
@@ -152,7 +149,7 @@ public class ModAnimationHelper {
     }
 
     /**
-     * 创建缩放向量
+     * 创建缩放向量。
      *
      * @param x X轴缩放
      * @param y Y轴缩放

@@ -58,17 +58,17 @@ import java.util.Map;
  * @param <T> 方块实体类型
  */
 public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
-    /** 动画计算使用的临时向量，避免重复创建对象 */
+    /** 动画计算使用的临时向量，避免重复创建对象。 */
     protected static final Vector3f ANIMATION_VEC = new Vector3f();
 
-    /** 模型部件映射表，键为骨骼名称，值为对应的 ModelPart 实例 */
+    /** 模型部件映射表，键为骨骼名称，值为对应的 ModelPart 实例。 */
     protected final Map<String, ModelPart> modelParts = new HashMap<>();
 
-    /** 模型部件初始状态存储，用于在动画前后保存和恢复模型状态 */
+    /** 模型部件初始状态存储，用于在动画前后保存和恢复模型状态。 */
     protected final Map<String, PartState> initialPartStates = new HashMap<>();
 
     /**
-     * 模型部件状态存储类
+     * 模型部件状态存储类。
      * <p>
      * 用于保存和恢复模型部件的完整变换状态（位置、旋转和缩放）。
      * </p>
@@ -85,7 +85,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
         public float xScale, yScale, zScale;
 
         /**
-         * 从模型部件创建状态快照
+         * 从模型部件创建状态快照。
          *
          * @param part 要保存状态的模型部件
          */
@@ -102,7 +102,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
         }
 
         /**
-         * 将保存的状态应用到模型部件
+         * 将保存的状态应用到模型部件。
          *
          * @param part 要恢复状态的模型部件
          */
@@ -118,7 +118,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     // 模型部件管理方法
 
     /**
-     * 注册模型部件并保存其初始状态
+     * 注册模型部件并保存其初始状态。
      * <p>
      * 应在构造函数中调用此方法注册所有需要动画的模型部件。
      * </p>
@@ -132,7 +132,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     }
 
     /**
-     * 重置指定模型部件到初始状态
+     * 重置指定模型部件到初始状态。
      *
      * @param name 模型部件标识符
      * @param part 要重置的模型部件
@@ -145,7 +145,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     }
 
     /**
-     * 重置所有已注册模型部件到初始状态
+     * 重置所有已注册模型部件到初始状态。
      * <p>
      * 应在渲染开始前调用此方法，确保每个方块实体从相同的初始状态开始动画。
      * </p>
@@ -159,7 +159,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     // 动画进度计算方法
 
     /**
-     * 计算动画进度
+     * 计算动画进度。
      * <p>
      * 默认实现返回实体年龄 + 部分时间，子类可重写此方法以提供自定义进度计算。
      * </p>
@@ -193,7 +193,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     }
 
     /**
-     * 更新动画状态并应用动画变换
+     * 更新动画状态并应用动画变换。
      * <p>
      * 仅在动画运行时应用变换，动画停止时不应用任何变换。
      * 适用于需要根据动画状态控制是否应用变换的情况。
@@ -222,7 +222,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     }
 
     /**
-     * 始终更新动画状态并应用动画变换
+     * 始终更新动画状态并应用动画变换。
      * <p>
      * 无论动画是否运行都会应用变换，适用于需要持续动画的情况。
      * </p>
@@ -250,7 +250,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     }
 
     /**
-     * 应用动画的初始状态
+     * 应用动画的初始状态。
      * <p>
      * 适用于不需要时间进度的静态姿势，或在特定时间点显示动画状态。
      * </p>
@@ -262,7 +262,7 @@ public abstract class WithAnimationBlockEntityRenderer<T extends BlockEntity> im
     }
 
     /**
-     * 基于肢体运动参数应用动画
+     * 基于肢体运动参数应用动画。
      * <p>
      * 适用于与实体运动相关的动画（如行走、奔跑等），
      * 基于肢体角度和距离计算动画进度。

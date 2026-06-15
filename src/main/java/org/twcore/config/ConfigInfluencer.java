@@ -1,9 +1,16 @@
 package org.twcore.config;
 
 /**
- * 配置默认值影响器，由某个模组提供，用于修改另一个模组配置的最终默认值。
+ * <h1>配置默认值影响器</h1>
+ * <p>
+ * 由某个模组提供，用于修改另一个模组配置的最终默认值。
+ * 携带一个类型安全的 {@code payload}，其类型 {@code T} 必须是
+ * 双方模组都能访问到的类（如原版 Minecraft 类型或 TW Core API 中的类）。
+ * </p>
+ *
+ * @param <T> 影响器携带的数据类型，目标模组可以安全地将其转换为该类型使用
  */
-public interface ConfigInfluencer {
+public interface ConfigInfluencer<T> {
     /**
      * @return 影响器来源模组的 ID
      */
@@ -15,7 +22,7 @@ public interface ConfigInfluencer {
     int sourceModVersion();
 
     /**
-     * @return 不透明的数据载体，由目标配置的所有者模组自行解析
+     * @return 类型安全的载荷数据，由来源模组提供，目标模组自行解析
      */
-    Object payload();
+    T payload();
 }
