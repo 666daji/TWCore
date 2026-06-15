@@ -8,7 +8,6 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -23,6 +22,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import org.twcore.api.sound.Item2BlockSounds;
 
 import java.util.List;
 
@@ -222,50 +222,54 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Inventor
     }
 
     /**
-     * 根据物品堆栈获取对应的声音事件。
+     * 统一的音效播放入口。
      * <p>
-     * 如果物品是{@link BlockItem}，则返回对应方块的放置音效；
-     * 否则返回默认的放置音效。
-     * </p>
+     * 根据方块上绑定的 {@link UpPlaceBlock.UpSounds} 决定播放策略：
      *
-     * @param itemStack 物品堆栈
-     * @return 对应的放置音效，如果没有合适的音效则返回null
+     * @param world        当前世界
+     * @param pos          播放位置
+     * @param stack        交互的物品堆栈（用于动态声音获取）
+     * @param isPlaceSound true 为放置音效，false 为取出音效
+     * @see UpPlaceBlock.UpSounds
      */
-    private SoundEvent getSoundForItem(ItemStack itemStack, boolean isPlaceSound) {
-        BlockSoundGroup soundGroup = Block.getBlockFromItem(itemStack.getItem()).getDefaultState().getSoundGroup();
+    protected void playSound(World world, BlockPos pos, ItemStack stack, boolean isPlaceSound) {
+        if (getCachedState().getBlock() instanceof UpPlaceBlock upPlaceBlock) {
+            UpPlaceBlock.UpSounds sounds = upPlaceBlock.upSounds;
 
-        if (soundGroup != null) {
-            return isPlaceSound ?
-                    soundGroup.getPlaceSound() : soundGroup.getBreakSound();
+            if (sounds == UpPlaceBlock.UpSounds.EMPTY) {
+                return;
+            }
+
+            if (sounds == UpPlaceBlock.UpSounds.DYNAMIC) {
+                SoundEvent sound = getDynamicPlaceSound(stack, isPlaceSound);
+                if (sound != null) {
+                    world.playSound(null, pos, sound, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                }
+            } else {
+                sounds.playSound(world, pos, isPlaceSound);
+            }
         }
-
-        // 默认音效
-        UpPlaceBlock.UpSounds defaultSounds = UpPlaceBlock.UpSounds.DEFAULT;
-        return isPlaceSound ?
-                defaultSounds.placeSound() : defaultSounds.fetchSound();
     }
 
     /**
-     * 默认的播放物品取回和放出的声音，子类在重写onPlace和onFetch方法时可以选择性地调用。
-     * @param world 当前的世界
-     * @param pos 播放声音的位置
-     * @param isPlaceSound 是否是放置的声音
+     * 动态获取物品对应的放置/取出音效。
+     * <p>
+     * 该方法仅在 {@link UpPlaceBlock.UpSounds#DYNAMIC} 模式下被调用。
+     * 默认实现：
+     * <ul>
+     *     <li>如果物品是 {@link net.minecraft.item.BlockItem}，则返回其对应方块的放置/破坏音效。</li>
+     *     <li>否则使用 {@link UpPlaceBlock.UpSounds#DYNAMIC} 中预置的兜底音效（石头音效）。</li>
+     * </ul>
+     * 子类可以重写此方法以实现完全自定义的动态音效选择逻辑。
+     *
+     * @param stack        被交互的物品堆栈
+     * @param isPlaceSound true 请求放置音效，false 请求取出音效
+     * @return 要播放的 {@link SoundEvent}，返回 {@code null} 则不播放任何声音
      */
-    protected void playSound(World world, BlockPos pos, ItemStack stack, boolean isPlaceSound){
-        if (getCachedState().getBlock() instanceof UpPlaceBlock upPlaceBlock) {
-            if (upPlaceBlock.upSounds.isDefault()) {
-                world.playSound(
-                        null,
-                        pos,
-                        getSoundForItem(stack, isPlaceSound),
-                        SoundCategory.BLOCKS,
-                        1.0F,
-                        1.0F
-                );
-            } else {
-                upPlaceBlock.upSounds.playSound(world, pos, isPlaceSound);
-            }
-        }
+    protected SoundEvent getDynamicPlaceSound(ItemStack stack, boolean isPlaceSound) {
+        BlockSoundGroup soundGroup = Item2BlockSounds.getSoundGroup(stack);
+
+        return isPlaceSound ? soundGroup.getPlaceSound() : soundGroup.getBreakSound();
     }
 
     /**

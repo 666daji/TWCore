@@ -14,6 +14,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.twcore.api.process.AbstractProcess;
+import org.twcore.api.sound.Item2BlockSounds;
 
 import java.util.Random;
 
@@ -114,17 +115,10 @@ public record StepExecutionContext<T>(AbstractProcess<T> process, T blockEntity,
 
     /**
      * 获取玩家当前手持物品的方块音效组。
-     * @return 获取的音效组，物品不是方块时返回石头音效组
+     * @return 获取的音效组，物品无法解析时返回石头音效组
      */
     public BlockSoundGroup getItemSounds() {
-        BlockState state = Block.getBlockFromItem(getHeldItemStack().getItem()).getDefaultState();
-        BlockSoundGroup group = state.getSoundGroup();
-
-        if (group != null) {
-            return group;
-        }
-
-        return BlockSoundGroup.STONE;
+        return Item2BlockSounds.getSoundGroup(getHeldItemStack());
     }
 
     /**
