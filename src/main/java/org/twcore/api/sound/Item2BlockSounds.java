@@ -70,7 +70,7 @@ public final class Item2BlockSounds {
         Item item = stack.getItem();
         if (item instanceof BlockItem blockItem) {
             Block block = blockItem.getBlock();
-            return Optional.ofNullable(block.defaultBlockState().getSoundType());
+            return Optional.of(block.defaultBlockState().getSoundType());
         }
         return Optional.empty();
     };

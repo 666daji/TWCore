@@ -120,10 +120,10 @@ public class ServerCubeBlockPileReference implements CubeBlockPileReference {
     public static ServerCubeBlockPileReference fromNbt(@NotNull LevelReader world, @NotNull CompoundTag nbt) {
         try {
             // 读取主方块坐标
-            BlockPos masterPos = NbtUtils.readBlockPos(nbt.getCompound(MASTER_POS_KEY));
+            BlockPos masterPos = NbtUtils.readBlockPos(nbt, MASTER_POS_KEY).orElseThrow();
 
             // 读取相对坐标
-            BlockPos relativePos = NbtUtils.readBlockPos(nbt.getCompound(RELATIVE_POS_KEY));
+            BlockPos relativePos = NbtUtils.readBlockPos(nbt, RELATIVE_POS_KEY).orElseThrow();
 
             // 读取基础方块
             String blockId = nbt.getString(BASE_BLOCK_KEY);

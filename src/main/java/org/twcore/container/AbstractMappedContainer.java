@@ -178,11 +178,10 @@ public abstract class AbstractMappedContainer extends ContainerType {
         validateReplace(stack, content); // 统一合法性检查
 
         if (content == null) {
-            // 清空容器：用空容器物品替换，保留NBT
+            // 清空容器：用空容器物品替换，保留物品组件
             ItemStack result = new ItemStack(getEmptyItem(), stack.getCount());
-            if (stack.hasTag()) {
-                result.setTag(stack.getTag().copy());
-            }
+            result.applyComponentsAndValidate(stack.getComponentsPatch());
+
             return result;
         }
 
@@ -196,9 +195,8 @@ public abstract class AbstractMappedContainer extends ContainerType {
         }
 
         ItemStack result = new ItemStack(mappedItem, stack.getCount());
-        if (stack.hasTag()) {
-            result.setTag(stack.getTag().copy());
-        }
+        result.applyComponentsAndValidate(stack.getComponentsPatch());
+
         return result;
     }
 

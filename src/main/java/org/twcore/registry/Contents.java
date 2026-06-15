@@ -1,5 +1,6 @@
 package org.twcore.registry;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.Foods;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -11,7 +12,7 @@ import org.twcore.content.HaveColorContent;
 
 public class Contents {
     public static final DeferredRegister<Content> CONTENT =
-            DeferredRegister.create(TWCore.createResourceLocation(TWCore.MOD_ID, "content"), TWCore.MOD_ID);
+            DeferredRegister.create(ResourceLocation.fromNamespaceAndPath(TWCore.MOD_ID, "content"), TWCore.MOD_ID);
 
     public static final String SOUP = "soup";
     public static final String BASE_LIQUID = "base_liquid";

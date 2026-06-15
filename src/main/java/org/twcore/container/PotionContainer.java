@@ -1,10 +1,11 @@
 package org.twcore.container;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,10 +45,10 @@ public class PotionContainer extends AbstractMappedContainer {
     public @NotNull ItemStack replaceContent(@NotNull ItemStack stack, @Nullable Content content) {
         if (content != null && content.equals(Contents.WATER.get())) {
             ItemStack result = new ItemStack(Items.POTION, stack.getCount());
-            if (stack.hasTag()) {
-                result.setTag(stack.getTag());
-            }
-            return PotionUtils.setPotion(result, Potions.WATER);
+            result.applyComponentsAndValidate(stack.getComponentsPatch());
+            result.set(DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER));
+
+            return result;
         }
 
         return super.replaceContent(stack, content);
@@ -59,7 +60,7 @@ public class PotionContainer extends AbstractMappedContainer {
         // 特殊处理水瓶
         if (content.equals(Contents.WATER.get())) {
             ItemStack result = new ItemStack(Items.POTION, amount);
-            return PotionUtils.setPotion(result, Potions.WATER);
+            result.set(DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER));
         }
 
         return super.createItemStack(content, amount);
@@ -73,7 +74,7 @@ public class PotionContainer extends AbstractMappedContainer {
     public static boolean isWaterPotion(ItemStack stack) {
         if (stack.getItem() instanceof PotionItem) {
             return stack.is(Items.POTION) &&
-                    PotionUtils.getPotion(stack) == Potions.WATER;
+                    stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).is(Potions.WATER);
         }
         return false;
     }

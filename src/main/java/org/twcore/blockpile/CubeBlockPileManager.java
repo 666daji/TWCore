@@ -1,13 +1,5 @@
 package org.twcore.blockpile;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +10,13 @@ import org.twcore.api.blockpile.CubeBlockPile;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 
 /**
  * 方块堆结构管理器 - 全局的方块堆注册和查找服务
@@ -39,10 +38,10 @@ import java.util.function.Consumer;
  * <h2>使用示例</h2>
  * <pre>{@code
  * // 查找指定位置的方块堆
- * CubeBlockPile multiBlock = CubeBlockPileManager.findCubeBlockPile(level, pos);
+ * CubeBlockPile multiBlock = CubeBlockPileManager.findCubeBlockPile(world, pos);
  *
  * // 获取世界中的所有方块堆
- * Collection<CubeBlockPile> allCubeBlockPiles = CubeBlockPileManager.getCubeBlockPilesInWorld(level);
+ * Collection<CubeBlockPile> allCubeBlockPiles = CubeBlockPileManager.getCubeBlockPilesInWorld(world);
  * }</pre>
  *
  * @see CubeBlockPilePersistentState
@@ -185,7 +184,7 @@ public class CubeBlockPileManager {
     private static CubeBlockPile rebuildCubeBlockPileFromData(ServerLevel world, CubeBlockPilePersistentState.CubeBlockPileData data) {
         try {
             // 获取基础方块
-            ResourceLocation blockId = new ResourceLocation(data.baseBlockId());
+            ResourceLocation blockId = ResourceLocation.parse(data.baseBlockId());
             Block baseBlock = BuiltInRegistries.BLOCK.get(blockId);
 
             // 创建PatternRange
@@ -223,7 +222,7 @@ public class CubeBlockPileManager {
     /**
      * 手动备份方块堆数据
      */
-    public static void backupCubeBlockPileData(MinecraftServer server) {
+    public static void backupCubeBlockPileData(net.minecraft.server.MinecraftServer server) {
         for (ServerLevel world : server.getAllLevels()) {
             CubeBlockPilePersistentState persistentState = CubeBlockPilePersistentState.getOrCreate(world);
             persistentState.saveToFile(server);
@@ -400,7 +399,7 @@ public class CubeBlockPileManager {
      * 使用try-with-resources模式创建临时CubeBlockPile
      */
     public static void withCubeBlockPile(LevelReader world, Block baseBlock, CubeBlockPile.PatternRange range,
-                                      Consumer<CubeBlockPile> action) {
+                                         Consumer<CubeBlockPile> action) {
         try (CubeBlockPile cubeBlockPile = CubeBlockPile.builder()
                 .world(world)
                 .baseBlock(baseBlock)

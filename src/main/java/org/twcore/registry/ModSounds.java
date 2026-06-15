@@ -1,5 +1,6 @@
 package org.twcore.registry;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -13,7 +14,7 @@ public class ModSounds {
     public static final RegistryObject<SoundEvent> SOUP_FILL = registerSoundEvent("soup_fill");
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(TWCore.createResourceLocation(TWCore.MOD_ID, name)));
+        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(TWCore.MOD_ID, name)));
     }
 
     public static void registerAll(IEventBus modEventBus) {

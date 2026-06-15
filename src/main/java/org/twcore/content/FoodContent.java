@@ -11,7 +11,6 @@ public class FoodContent extends Content{
     /**
      * 创建一个内容物类型实例。
      *
-     * @param id 内容物类型的唯一标识符
      * @param foodComponent 内容物的食物属性
      * @throws NullPointerException 如果id为null
      */

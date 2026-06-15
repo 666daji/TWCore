@@ -1,5 +1,6 @@
 package org.twcore.registry;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -10,7 +11,7 @@ import org.twcore.container.*;
 
 public class ContainerTypes {
     public static final DeferredRegister<ContainerType> CONTAINER_TYPE =
-            DeferredRegister.create(TWCore.createResourceLocation(TWCore.MOD_ID, "container_type"), TWCore.MOD_ID);
+            DeferredRegister.create(ResourceLocation.fromNamespaceAndPath(TWCore.MOD_ID, "container_type"), TWCore.MOD_ID);
 
     public static final RegistryObject<ContainerType> BOWL = register("bowl",
             () -> new BowlContainer(new ContainerType.ContainerSettings(Items.BOWL)

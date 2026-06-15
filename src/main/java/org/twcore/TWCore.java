@@ -1,6 +1,5 @@
 package org.twcore;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -23,8 +22,8 @@ public class TWCore {
     public static final String MOD_ID = "tw_core";
     public static final Logger LOGGER = LoggerFactory.getLogger("TW`s Core");
 
-    public TWCore() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public TWCore(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
         modEventBus.addListener(this::onCommonSetup);
         modEventBus.addListener(this::onClientSetup);
         RegistryInit.init(modEventBus);
@@ -61,9 +60,5 @@ public class TWCore {
         MinecraftForge.EVENT_BUS.addListener(CubeBlockPileManager::onWorldStart);
         // 服务器停止时清理
         MinecraftForge.EVENT_BUS.addListener(CubeBlockPileManager::onServerStopping);
-    }
-
-    public static ResourceLocation createResourceLocation(String nameSpace, String path) {
-        return new ResourceLocation(nameSpace, path);
     }
 }

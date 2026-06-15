@@ -255,8 +255,7 @@ public final class ConfigManager {
             if (entry == null) return;
             Codec<T> codec = (Codec<T>) entry.type.codec();
 
-            JsonElement json = codec.encodeStart(JsonOps.INSTANCE, data)
-                    .getOrThrow(false, s -> LOGGER.error("Failed to encode config '{}': {}", key, s));
+            JsonElement json = codec.encodeStart(JsonOps.INSTANCE, data).getOrThrow();
             JsonObject obj = ensureJsonObject(json);
             obj.addProperty("version", version);
             Files.writeString(file, GSON.toJson(obj), StandardCharsets.UTF_8);
