@@ -31,8 +31,8 @@ public class ClientCubeBlockPileReference implements CubeBlockPileReference {
 
     public ClientCubeBlockPileReference(@NotNull NbtCompound nbt) {
         // 从NBT反序列化
-        this.masterWorldPos = NbtHelper.toBlockPos(nbt.getCompound(MASTER_POS_KEY));
-        this.relativePos = NbtHelper.toBlockPos(nbt.getCompound(RELATIVE_POS_KEY));
+        this.masterWorldPos = NbtHelper.toBlockPos(nbt, MASTER_POS_KEY).orElseThrow();
+        this.relativePos = NbtHelper.toBlockPos(nbt, RELATIVE_POS_KEY).orElseThrow();
 
         String blockId = nbt.getString(BASE_BLOCK_KEY);
         this.baseBlock = net.minecraft.registry.Registries.BLOCK.get(net.minecraft.util.Identifier.tryParse(blockId));

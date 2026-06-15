@@ -1,10 +1,11 @@
 package org.twcore.container;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.PotionItem;
-import net.minecraft.potion.PotionUtil;
 import net.minecraft.potion.Potions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,10 +45,10 @@ public class PotionContainer extends AbstractMappedContainer {
     public @NotNull ItemStack replaceContent(@NotNull ItemStack stack, @Nullable Content content) {
         if (content != null && content.equals(Contents.WATER)) {
             ItemStack result = new ItemStack(Items.POTION, stack.getCount());
-            if (stack.hasNbt()) {
-                result.setNbt(stack.getNbt());
-            }
-            return PotionUtil.setPotion(result, Potions.WATER);
+            result.applyChanges(stack.getComponentChanges());
+            result.set(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Potions.WATER));
+
+            return result;
         }
 
         return super.replaceContent(stack, content);
@@ -59,7 +60,7 @@ public class PotionContainer extends AbstractMappedContainer {
         // 特殊处理水瓶
         if (content.equals(Contents.WATER)) {
             ItemStack result = new ItemStack(Items.POTION, amount);
-            return PotionUtil.setPotion(result, Potions.WATER);
+            result.set(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Potions.WATER));
         }
 
         return super.createItemStack(content, amount);
@@ -73,7 +74,7 @@ public class PotionContainer extends AbstractMappedContainer {
     public static boolean isWaterPotion(ItemStack stack) {
         if (stack.getItem() instanceof PotionItem) {
             return stack.isOf(Items.POTION) &&
-                    PotionUtil.getPotion(stack) == Potions.WATER;
+                    stack.getOrDefault(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT).matches(Potions.WATER);
         }
         return false;
     }

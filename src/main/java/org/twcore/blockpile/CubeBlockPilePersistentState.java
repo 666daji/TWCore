@@ -1,6 +1,9 @@
 package org.twcore.blockpile;
 
+import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.*;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -27,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CubeBlockPilePersistentState extends PersistentState {
     private static final Logger LOGGER = TWCore.LOGGER;
     private static final String PERSISTENT_ID = "cubeBlockPiles";
+    public static final Type<CubeBlockPilePersistentState> TYPE =
+            new Type<>(CubeBlockPilePersistentState::new, CubeBlockPilePersistentState::fromNbt, DataFixTypes.LEVEL);
 
     /**
      * 临时存储的方块堆数据
@@ -55,9 +60,9 @@ public class CubeBlockPilePersistentState extends PersistentState {
             }
 
             public static @NotNull CubeBlockPilePersistentState.CubeBlockPileData fromNbt(@NotNull NbtCompound nbt) {
-                BlockPos masterPos = NbtHelper.toBlockPos(nbt.getCompound("masterPos"));
+                BlockPos masterPos = NbtHelper.toBlockPos(nbt, "masterPos").orElseThrow();
                 String baseBlockId = nbt.getString("baseBlockId");
-                BlockPos start = NbtHelper.toBlockPos(nbt.getCompound("start"));
+                BlockPos start = NbtHelper.toBlockPos(nbt, "start").orElseThrow();
                 int width = nbt.getInt("width");
                 int height = nbt.getInt("height");
                 int depth = nbt.getInt("depth");
@@ -75,7 +80,7 @@ public class CubeBlockPilePersistentState extends PersistentState {
 
         CubeBlockPileData data = new CubeBlockPileData(
                 cubeBlockPile.getMasterPos(),
-                cubeBlockPile.getBaseBlock().getRegistryEntry().registryKey().getValue().toString(),
+                Registries.BLOCK.getKey(cubeBlockPile.getBaseBlock()).orElseThrow().getValue().toString(),
                 cubeBlockPile.getRange().getStart(),
                 cubeBlockPile.getRange().getWidth(),
                 cubeBlockPile.getRange().getHeight(),
@@ -117,7 +122,7 @@ public class CubeBlockPilePersistentState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         NbtList worldsList = new NbtList();
 
         for (Map.Entry<Identifier, Map<BlockPos, CubeBlockPileData>> worldEntry : worldData.entrySet()) {
@@ -141,13 +146,13 @@ public class CubeBlockPilePersistentState extends PersistentState {
     /**
      * 从NBT读取数据
      */
-    public static @NotNull CubeBlockPilePersistentState fromNbt(NbtCompound nbt) {
+    public static @NotNull CubeBlockPilePersistentState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         CubeBlockPilePersistentState state = new CubeBlockPilePersistentState();
 
         NbtList worldsList = nbt.getList("worlds", NbtElement.COMPOUND_TYPE);
         for (NbtElement worldElement : worldsList) {
             NbtCompound worldNbt = (NbtCompound) worldElement;
-            Identifier worldId = new Identifier(worldNbt.getString("worldId"));
+            Identifier worldId = Identifier.of(worldNbt.getString("worldId"));
 
             Map<BlockPos, CubeBlockPileData> worldMap = new ConcurrentHashMap<>();
             NbtList cubeBlockPilesList = worldNbt.getList("cubeBlockPiles", NbtElement.COMPOUND_TYPE);
@@ -173,11 +178,7 @@ public class CubeBlockPilePersistentState extends PersistentState {
      */
     public static CubeBlockPilePersistentState getOrCreate(ServerWorld world) {
         PersistentStateManager persistentStateManager = world.getPersistentStateManager();
-        return persistentStateManager.getOrCreate(
-                CubeBlockPilePersistentState::fromNbt,
-                CubeBlockPilePersistentState::new,
-                PERSISTENT_ID
-        );
+        return persistentStateManager.getOrCreate(TYPE, PERSISTENT_ID);
     }
 
     /**
@@ -188,8 +189,8 @@ public class CubeBlockPilePersistentState extends PersistentState {
             File worldDir = server.getSavePath(WorldSavePath.ROOT).toFile();
             File backupFile = new File(worldDir, "cubeBlockPileblocks_backup.dat");
 
-            NbtCompound nbt = this.writeNbt(new NbtCompound());
-            NbtIo.write(nbt, backupFile);
+            NbtCompound nbt = this.writeNbt(new NbtCompound(), server.getRegistryManager());
+            NbtIo.write(nbt, backupFile.toPath());
         } catch (IOException e) {
             LOGGER.error("Failed to backup CubeBlockPile data: {}", e.getMessage());
         }

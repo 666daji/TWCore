@@ -182,7 +182,7 @@ public class CubeBlockPileManager {
     private static CubeBlockPile rebuildCubeBlockPileFromData(ServerWorld world, CubeBlockPilePersistentState.CubeBlockPileData data) {
         try {
             // 获取基础方块
-            Identifier blockId = new Identifier(data.baseBlockId());
+            Identifier blockId = Identifier.of(data.baseBlockId());
             Block baseBlock = Registries.BLOCK.get(blockId);
 
             // 创建PatternRange
