@@ -41,7 +41,7 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
     }
 
     public UpPlaceBlock(Settings settings) {
-        this(settings, UpSounds.DEFAULT);
+        this(settings, UpSounds.DYNAMIC);
     }
 
     /**
@@ -151,68 +151,41 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
     public abstract boolean canPlace(UpPlaceBlockEntity blockEntity, ItemStack handStack);
 
     /**
-     * 定义物品在{@link UpPlaceBlock}上放置和取出时播放的音效
+     * 定义物品在 {@link UpPlaceBlock} 上放置和取出时的音效配置。
+     * <p>
+     * 提供三种预置模式：
+     * <ul>
+     *     <li><b>空音效 {@link #EMPTY}</b>：完全不播放任何声音。</li>
+     *     <li><b>动态物品音效 {@link #DYNAMIC}</b>：根据交互的物品类型自动决定声音。
+     *         此时记录中的 {@code placeSound} 和 {@code fetchSound} 仅作为动态获取失败时的兜底值（默认为石头声音）。</li>
+     *     <li><b>固定音效</b>：通过构造方法直接指定一个固定的 {@link SoundEvent}，播放时不再动态计算。</li>
+     * </ul>
      *
-     * @param placeSound 放置物品时播放的音效
-     * @param fetchSound 取出物品时播放的音效
+     * @param placeSound 放置时使用的固定音效（动态模式下作为兜底）
+     * @param fetchSound 取出时使用的固定音效（动态模式下作为兜底）
      */
     public record UpSounds(SoundEvent placeSound, SoundEvent fetchSound) {
-        /**
-         * 空音效定义，表示不播放任何音效
-         */
+
+        /** 空音效：不播放任何声音 */
         public static final UpSounds EMPTY = new UpSounds(null, null);
 
         /**
-         * 默认的音效配置
+         * 动态物品音效：根据交互物品的材质自动选择声音。
+         * 兜底音效为石头放置/破坏音效。
          */
-        public static final UpSounds DEFAULT = new UpSounds(SoundEvents.BLOCK_STONE_PLACE, SoundEvents.BLOCK_STONE_BREAK);
+        public static final UpSounds DYNAMIC = new UpSounds(
+                SoundEvents.BLOCK_STONE_PLACE,
+                SoundEvents.BLOCK_STONE_BREAK
+        );
 
         /**
-         * 在指定位置播放放置音效
-         * <p>
-         * 音效会在整个世界中播放，所有玩家都能听到。
-         * 如果placeSound为null，则不会播放任何音效。
-         * </p>
+         * 播放固定音效（仅在非动态模式下由 {@link UpPlaceBlockEntity#playSound} 调用）。
+         * 如果内部音效为 {@code null} 则不会播放。
          *
-         * @param world 播放音效的世界
-         * @param pos 播放音效的位置
+         * @param world        当前世界
+         * @param pos          播放位置
+         * @param isPlaceSound true 播放放置音效，false 播放取出音效
          */
-        public void playPlaceSound(World world, BlockPos pos) {
-            if (placeSound != null && !world.isClient) {
-                world.playSound(
-                        null,
-                        pos,
-                        placeSound,
-                        SoundCategory.BLOCKS,
-                        1.0F,
-                        1.0F
-                );
-            }
-        }
-
-        /**
-         * 在指定位置播放取出音效
-         * <p>
-         * 音效会在整个世界中播放，所有玩家都能听到。
-         * 如果fetchSound为null，则不会播放任何音效。
-         * </p>
-         *
-         * @param world 播放音效的世界
-         * @param pos 播放音效的位置
-         */
-        public void playFetchSound(World world, BlockPos pos) {
-            if (fetchSound != null && !world.isClient) {
-                world.playSound(
-                        null,
-                        pos,
-                        fetchSound,
-                        SoundCategory.BLOCKS,
-                        1.0F,
-                        1.0F
-                );
-            }
-        }
-
         public void playSound(World world, BlockPos pos, boolean isPlaceSound) {
             if (isPlaceSound) {
                 playPlaceSound(world, pos);
@@ -221,8 +194,18 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
             }
         }
 
-        public boolean isDefault() {
-            return this == DEFAULT;
+        /** 播放放置固定音效（服务端，音效非空时） */
+        public void playPlaceSound(World world, BlockPos pos) {
+            if (placeSound != null && !world.isClient) {
+                world.playSound(null, pos, placeSound, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            }
+        }
+
+        /** 播放取出固定音效（服务端，音效非空时） */
+        public void playFetchSound(World world, BlockPos pos) {
+            if (fetchSound != null && !world.isClient) {
+                world.playSound(null, pos, fetchSound, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            }
         }
     }
 }
