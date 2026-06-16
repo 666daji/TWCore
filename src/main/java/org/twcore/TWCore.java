@@ -3,13 +3,10 @@ package org.twcore;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
-import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.twcore.api.TwCoreRegistrar;
 import org.twcore.api.TwModManager;
 import org.twcore.blockpile.CubeBlockPileManager;
-import org.twcore.config.ConfigManager;
 import org.twcore.process.playeraction.PlayerActionFactory;
 import org.twcore.process.playeraction.impl.AddContentPlayerAction;
 import org.twcore.process.playeraction.impl.AddItemPlayerAction;
@@ -24,14 +21,6 @@ public class TWCore implements ModInitializer {
     public void onInitialize() {
         RegistryInit.init();
         register();
-
-        // 调用所有子模组注册方法
-        FabricLoader.getInstance()
-                .getEntrypointContainers("tw-core:register", TwCoreRegistrar.class)
-                .forEach(container -> container.getEntrypoint().register());
-
-        // 初始化逻辑
-        ConfigManager.loadCommon();
 
         // 杂项
         ContainerTypes.initDefaultMappings();

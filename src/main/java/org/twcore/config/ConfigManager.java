@@ -121,8 +121,7 @@ public final class ConfigManager {
 
     /**
      * 加载所有 {@link ConfigSide#COMMON} 配置。
-     * 应在双端通用注册全部完成后调用（例如 Fabric 的 {@code ModInitializer}
-     * 结尾，Forge 的 {@code FMLCommonSetupEvent} 中）。
+     * 应在双端通用注册全部完成后调用。
      */
     public static synchronized void loadCommon() {
         loadBySide(ConfigSide.COMMON);
@@ -130,9 +129,7 @@ public final class ConfigManager {
 
     /**
      * 加载所有 {@link ConfigSide#CLIENT} 配置。
-     * 仅在物理客户端调用，应在客户端专属注册完成后执行
-     * （例如 Fabric 的 {@code ClientModInitializer} 结尾，
-     * Forge 的 {@code FMLClientSetupEvent} 中）。
+     * 仅在物理客户端调用，应在客户端专属注册完成后执行。
      */
     public static synchronized void loadClient() {
         loadBySide(ConfigSide.CLIENT);
