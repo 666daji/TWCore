@@ -2,6 +2,7 @@ package org.twcore.blockpile;
 
 import net.minecraft.block.Block;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -198,6 +199,12 @@ public class CubeBlockPileManager {
         } catch (Exception e) {
             LOGGER.error("Failed to rebuild CubeBlockPile from data: {}", e.getMessage());
             return null;
+        }
+    }
+
+    public static void onWorldStart(MinecraftServer server, World world) {
+        if (!world.isClient) {
+            CubeBlockPileManager.loadWorldCubeBlockPiles((ServerWorld) world);
         }
     }
 

@@ -10,7 +10,10 @@ import org.twcore.api.TwCoreRegistrar;
 import org.twcore.api.TwModManager;
 import org.twcore.blockpile.CubeBlockPileManager;
 import org.twcore.config.ConfigManager;
-import org.twcore.content.ContentCategories;
+import org.twcore.process.playeraction.PlayerActionFactory;
+import org.twcore.process.playeraction.impl.AddContentPlayerAction;
+import org.twcore.process.playeraction.impl.AddItemPlayerAction;
+import org.twcore.registry.ContainerTypes;
 import org.twcore.registry.RegistryInit;
 
 public class TWCore implements ModInitializer {
@@ -29,24 +32,51 @@ public class TWCore implements ModInitializer {
 
         // 初始化逻辑
         ConfigManager.loadCommon();
-        ContentCategories.init();
+
+        // 杂项
+        ContainerTypes.initDefaultMappings();
         cubeBlockPileInit();
+        registerDefaultAction();
 
         LOGGER.info("TW`s Core is initializing!");
     }
 
+    /**
+     * TW`s Core对自己注册。
+     *
+     * @see TwModManager
+     */
     private void register() {
-        TwModManager.IMPL.register(MOD_ID, 1);
+        TwModManager.IMPL.register(MOD_ID, 2);
     }
 
+    // ==================== 其他注册逻辑 ====================
+
+    /**
+     * 方块堆事件注册。
+     *
+     * @see org.twcore.api.blockpile.CubeBlockPile
+     */
     private static void cubeBlockPileInit(){
-        // 世界加载时恢复多方块数据
-        ServerWorldEvents.LOAD.register((server, world) -> {
-            if (!world.isClient()) {
-                CubeBlockPileManager.loadWorldCubeBlockPiles(world);
-            }
-        });
-        // 服务器停止时清理
+        ServerWorldEvents.LOAD.register(CubeBlockPileManager::onWorldStart);
         ServerLifecycleEvents.SERVER_STOPPING.register(CubeBlockPileManager::onServerStopping);
+    }
+
+    /**
+     * 玩家操作类型注册。
+     *
+     * @see org.twcore.api.process.PlayerAction
+     */
+    public static void registerDefaultAction() {
+        PlayerActionFactory.register(
+                AddItemPlayerAction.TYPE,
+                AddItemPlayerAction::fromParams,
+                context -> AddItemPlayerAction.fromContext(context).orElse(null)
+        );
+        PlayerActionFactory.register(
+                AddContentPlayerAction.TYPE,
+                AddContentPlayerAction::fromParams,
+                context -> AddContentPlayerAction.fromContext(context).orElse(null)
+        );
     }
 }

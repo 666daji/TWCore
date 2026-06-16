@@ -25,42 +25,27 @@ public class ContainerTypes {
         return Registry.register(TWRegistries.CONTAINER_TYPE, new Identifier(TWCore.MOD_ID, name), containerType);
     }
 
-    public static void registerAll() {
-        initializeBowl();
-        initializeBucket();
-        initializePotion();
-    }
+    public static void registerAll() {}
 
     /**
-     * 初始化汤映射
+     * 映射容器注册。
+     *
+     * @see AbstractMappedContainer
      */
-    private static void initializeBowl() {
-        // 蘑菇煲
-        ((AbstractMappedContainer) BOWL).registerContentMapping(Contents.MUSHROOM_STEW, Items.MUSHROOM_STEW);
+    public static void initDefaultMappings() {
+        // 碗映射
+        BowlContainer bowl = (BowlContainer) BOWL;
+        bowl.registerContentMapping(Contents.MUSHROOM_STEW, Items.MUSHROOM_STEW);
+        bowl.registerContentMapping(Contents.BEETROOT_SOUP, Items.BEETROOT_SOUP);
+        bowl.registerContentMapping(Contents.RABBIT_STEW, Items.RABBIT_STEW);
 
-        // 甜菜汤
-        ((AbstractMappedContainer) BOWL).registerContentMapping(Contents.BEETROOT_SOUP, Items.BEETROOT_SOUP);
+        // 桶映射
+        BucketContainer bucket = (BucketContainer) BUCKET;
+        bucket.registerContentMapping(Contents.WATER, Items.WATER_BUCKET);
+        bucket.registerContentMapping(Contents.MILK, Items.MILK_BUCKET);
 
-        // 兔肉煲
-        ((AbstractMappedContainer) BOWL).registerContentMapping(Contents.RABBIT_STEW, Items.RABBIT_STEW);
-    }
-
-    /**
-     * 初始化桶的映射。
-     */
-    private static void initializeBucket() {
-        // 水桶
-        ((AbstractMappedContainer) BUCKET).registerContentMapping(Contents.WATER, Items.WATER_BUCKET);
-
-        // 牛奶桶
-        ((AbstractMappedContainer) BUCKET).registerContentMapping(Contents.MILK, Items.MILK_BUCKET);
-    }
-
-    /**
-     * 初始化瓶子映射。
-     */
-    private static void initializePotion() {
-        // 蜂蜜瓶
-        ((AbstractMappedContainer) POTION).registerContentMapping(Contents.HONEY, Items.HONEY_BOTTLE);
+        // 瓶子映射
+        PotionContainer potion = (PotionContainer) POTION;
+        potion.registerContentMapping(Contents.HONEY, Items.HONEY_BOTTLE);
     }
 }
