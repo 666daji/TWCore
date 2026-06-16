@@ -2,6 +2,7 @@ package org.twcore.blockpile;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -11,7 +12,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
@@ -80,7 +80,7 @@ public class CubeBlockPilePersistentState extends SavedData {
 
         CubeBlockPileData data = new CubeBlockPileData(
                 cubeBlockPile.getMasterPos(),
-                ForgeRegistries.BLOCKS.getResourceKey(cubeBlockPile.getBaseBlock()).orElseThrow().location().toString(),
+                BuiltInRegistries.BLOCK.getResourceKey(cubeBlockPile.getBaseBlock()).orElseThrow().location().toString(),
                 cubeBlockPile.getRange().getStart(),
                 cubeBlockPile.getRange().getWidth(),
                 cubeBlockPile.getRange().getHeight(),

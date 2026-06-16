@@ -54,8 +54,8 @@ public abstract class AbstractMappedContainer extends ContainerType {
     public void registerContentMapping(Content content, Item item) {
         if (!canContain(content)) {
             TWCore.LOGGER.warn("Attempted to register invalid content to {} container: {}",
-                    TWRegistries.CONTAINER_TYPE.get().getKey(this),
-                    TWRegistries.CONTENT.get().getKey(content));
+                    TWRegistries.CONTAINER_TYPE.getKey(this),
+                    TWRegistries.CONTENT.getKey(content));
             return;
         }
 
@@ -189,8 +189,8 @@ public abstract class AbstractMappedContainer extends ContainerType {
         Item mappedItem = contentBiMap.inverse().get(content);
         if (mappedItem == null) {
             TWCore.LOGGER.warn("No item mapping found for content: {} in container {}",
-                    TWRegistries.CONTENT.get().getKey(content),
-                    TWRegistries.CONTAINER_TYPE.get().getKey(this));
+                    TWRegistries.CONTENT.getKey(content),
+                    TWRegistries.CONTAINER_TYPE.getKey(this));
             return stack.copy();
         }
 
@@ -216,13 +216,13 @@ public abstract class AbstractMappedContainer extends ContainerType {
     public ItemStack createItemStack(Content content, int amount) {
         if (!canContain(content)) {
             throw new IllegalArgumentException("Container cannot contain content: " +
-                    TWRegistries.CONTENT.get().getKey(content));
+                    TWRegistries.CONTENT.getKey(content));
         }
 
         Item item = contentBiMap.inverse().get(content);
         if (item == null) {
             throw new IllegalArgumentException("No item mapping found for content: " +
-                    TWRegistries.CONTENT.get().getKey(content));
+                    TWRegistries.CONTENT.getKey(content));
         }
 
         return new ItemStack(item, amount);

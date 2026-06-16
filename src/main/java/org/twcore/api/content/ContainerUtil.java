@@ -98,7 +98,7 @@ public final class ContainerUtil {
             return Optional.empty();
         }
 
-        for (ContainerType container : TWRegistries.CONTAINER_TYPE.get()) {
+        for (ContainerType container : TWRegistries.CONTAINER_TYPE) {
             if (container.matches(stack)) {
                 Content content = container.extractContent(stack);
                 return Optional.of(new ContainerStack(container, content, stack));
@@ -128,7 +128,7 @@ public final class ContainerUtil {
      */
     @NotNull
     public static ItemStack createEmptyContainer(@NotNull ResourceLocation containerId, int amount) {
-        ContainerType container = TWRegistries.CONTAINER_TYPE.get().getValue(containerId);
+        ContainerType container = TWRegistries.CONTAINER_TYPE.get(containerId);
         if (container == null) {
             return ItemStack.EMPTY;
         }
@@ -166,8 +166,8 @@ public final class ContainerUtil {
     public static ItemStack createFilledContainer(@NotNull ResourceLocation containerId,
                                                   @NotNull ResourceLocation contentId,
                                                   int amount) {
-        ContainerType container = TWRegistries.CONTAINER_TYPE.get().getValue(containerId);
-        Content content = TWRegistries.CONTENT.get().getValue(contentId);
+        ContainerType container = TWRegistries.CONTAINER_TYPE.get(containerId);
+        Content content = TWRegistries.CONTENT.get(contentId);
         if (container == null || content == null) {
             return ItemStack.EMPTY;
         }

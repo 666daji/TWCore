@@ -2,9 +2,9 @@ package org.twcore.registry;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.Foods;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.twcore.TWCore;
 import org.twcore.content.Content;
 import org.twcore.content.FoodContent;
@@ -19,26 +19,26 @@ public class Contents {
     public static final String SYRUP = "syrup";
 
     // 汤
-    public static final RegistryObject<Content> MUSHROOM_STEW = registerContent("mushroom_stew",
+    public static final DeferredHolder<Content, Content> MUSHROOM_STEW = registerContent("mushroom_stew",
             new FoodContent(SOUP, Foods.MUSHROOM_STEW));
 
-    public static final RegistryObject<Content> BEETROOT_SOUP = registerContent("beetroot_soup",
+    public static final DeferredHolder<Content, Content> BEETROOT_SOUP = registerContent("beetroot_soup",
             new FoodContent(SOUP, Foods.BEETROOT_SOUP));
 
-    public static final RegistryObject<Content> RABBIT_STEW = registerContent("rabbit_stew",
+    public static final DeferredHolder<Content, Content> RABBIT_STEW = registerContent("rabbit_stew",
             new FoodContent(SOUP, Foods.RABBIT_STEW));
 
     // 基础液体
-    public static final RegistryObject<Content> WATER = registerContent("water",
+    public static final DeferredHolder<Content, Content> WATER = registerContent("water",
             new HaveColorContent(BASE_LIQUID, 4159204));
 
-    public static final RegistryObject<Content> MILK = registerContent("milk",
+    public static final DeferredHolder<Content, Content> MILK = registerContent("milk",
             new HaveColorContent(BASE_LIQUID, 0xFFFAF2ED));
 
     // 糖浆
-    public static final RegistryObject<Content> HONEY = registerContent("honey", new Content(SYRUP));
+    public static final DeferredHolder<Content, Content> HONEY = registerContent("honey", new Content(SYRUP));
 
-    public static RegistryObject<Content> registerContent(String name, Content content) {
+    public static DeferredHolder<Content, Content> registerContent(String name, Content content) {
         return CONTENT.register(name, () -> content);
     }
 

@@ -44,7 +44,7 @@ public class Content {
     @NotNull
     public String getDisplayTranslationKey() {
         if (this.translationKey == null) {
-            this.translationKey = Util.makeDescriptionId("content", TWRegistries.CONTENT.get().getKey(this));
+            this.translationKey = Util.makeDescriptionId("content", TWRegistries.CONTENT.getKey(this));
         }
         return this.translationKey;
     }

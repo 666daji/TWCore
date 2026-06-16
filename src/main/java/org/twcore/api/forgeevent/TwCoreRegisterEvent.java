@@ -1,7 +1,7 @@
 package org.twcore.api.forgeevent;
 
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.Event;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 /**
  * <h1>TW Core 通用注册事件</h1>

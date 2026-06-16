@@ -15,7 +15,7 @@ public class ContentCategories {
      * @apiNote 此方法应当仅调用一次。
      */
     public static void init() {
-        TWRegistries.CONTENT.get().forEach(content ->
+        TWRegistries.CONTENT.forEach(content ->
                 CATEGORY_MAP.computeIfAbsent(content.getCategory(),
                 k -> new LinkedHashSet<>()).add(content));
     }

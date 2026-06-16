@@ -1,7 +1,7 @@
 package org.twcore.blockpile;
 
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.twcore.TWCore;

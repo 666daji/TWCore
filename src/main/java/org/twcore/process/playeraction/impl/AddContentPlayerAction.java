@@ -43,7 +43,7 @@ public class AddContentPlayerAction extends PlayerAction {
             throw new IllegalArgumentException("Invalid Content ID: " + params[0]);
         }
 
-        Content content = TWRegistries.CONTENT.get().getValue(contentId);
+        Content content = TWRegistries.CONTENT.get(contentId);
         if (content == null) {
             throw new IllegalArgumentException("No Content found: " + contentId);
         }
@@ -99,7 +99,7 @@ public class AddContentPlayerAction extends PlayerAction {
 
     @Override
     public String toString() {
-        ResourceLocation contentId = TWRegistries.CONTENT.get().getKey(content);
+        ResourceLocation contentId = TWRegistries.CONTENT.getKey(content);
         return String.format("add_content|%s|%d", contentId, count);
     }
 
@@ -153,7 +153,7 @@ public class AddContentPlayerAction extends PlayerAction {
 
     @Override
     public String getCode() {
-        ResourceLocation contentId = TWRegistries.CONTENT.get().getKey(content);
+        ResourceLocation contentId = TWRegistries.CONTENT.getKey(content);
         // 1. 操作类型固定位: "c" 表示添加物品
         StringBuilder code = new StringBuilder("c");
 
