@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import net.fabricmc.loader.api.FabricLoader;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
@@ -69,7 +70,7 @@ import java.util.function.Function;
  */
 public final class ConfigManager {
     private static final Logger LOGGER = TWCore.LOGGER;
-    private static final Path BASE_DIR = Path.of("config", "tenacious-wonder");
+    private static final Path BASE_DIR = FabricLoader.getInstance().getConfigDir().resolve("tenacious-wonder");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     // 内部键，标识一个配置 (modId, configName)

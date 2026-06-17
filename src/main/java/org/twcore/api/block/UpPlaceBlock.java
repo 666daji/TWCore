@@ -103,7 +103,7 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
         if (blockEntity instanceof UpPlaceBlockEntity upPlaceBlockEntity) {
             // 尝试取出物品
             if (canFetched(upPlaceBlockEntity, handStack)) {
-                UpPlaceBlockEntity.Result fetchResult = upPlaceBlockEntity.tryFetchItem(player);
+                UpPlaceBlockEntity.Result fetchResult = upPlaceBlockEntity.tryFetchItem(player, hit);
                 if (fetchResult.isAccepted()) {
                     upPlaceBlockEntity.onFetch(state, world, pos, player, hand, hit, fetchResult.opsStacks());
                     return fetchResult.result();
@@ -112,7 +112,7 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
 
             // 尝试放置物品
             if (canPlace(upPlaceBlockEntity, handStack)) {
-                UpPlaceBlockEntity.Result placeResult = upPlaceBlockEntity.tryAddItem(handStack);
+                UpPlaceBlockEntity.Result placeResult = upPlaceBlockEntity.tryAddItem(handStack, hit);
                 if (placeResult.isAccepted()) {
                     upPlaceBlockEntity.onPlace(state, world, pos, player, hand, hit, handStack, placeResult.opsStacks());
                     return placeResult.result();
@@ -156,7 +156,7 @@ public abstract class UpPlaceBlock extends BlockWithEntity {
      * <ul>
      *     <li><b>空音效 {@link #EMPTY}</b>：完全不播放任何声音。</li>
      *     <li><b>动态物品音效 {@link #DYNAMIC}</b>：根据交互的物品类型自动决定声音。
-     *         此时记录中的 {@code placeSound} 和 {@code fetchSound} 仅作为动态获取失败时的兜底值（默认为石头声音）。</li>
+     *         此时记录中的 {@code placeSound} 和 {@code fetchSound} 仅作为动态获取失败时的兜底值。</li>
      *     <li><b>固定音效</b>：通过构造方法直接指定一个固定的 {@link SoundEvent}，播放时不再动态计算。</li>
      * </ul>
      *
