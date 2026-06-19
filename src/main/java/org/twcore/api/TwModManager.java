@@ -11,8 +11,7 @@ import java.util.Map;
  * 该接口定义了所有 TW 系列模组与 TW Core 之间的注册与查询协议。
  * <h2>使用规则</h2>
  * <ol>
- *     <li>所有基于 TW Core 的子模组<b>必须</b>在初始化的最早期（例如
- *         {@code FMLCommonSetupEvent} 之前或 {@code ModInitializer} 的第一行）
+ *     <li>所有基于 TW Core 的子模组<b>必须</b>在TW Core注册事件中
  *         调用 {@link #register(String, int)} 完成注册。</li>
  *     <li>注册时需提供自己的 {@code modVersion}（一个正整数），表示该模组
  *          版本等级。该数字越大代表需要的 API 越新。</li>

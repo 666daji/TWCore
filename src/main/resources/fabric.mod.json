@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "tw-core",
   "version": "${version}",
-  "name": "TW`s Core",
+  "name": "TW's Core",
   "description": "Tenacious Wonder ",
   "authors": ["The bridge between Tenacious Wonder mods"],
   "contact": {

@@ -7,17 +7,21 @@ import java.util.*;
 
 public class ContentCategories {
     private static final Map<String, Set<Content>> CATEGORY_MAP = new HashMap<>();
+    private static boolean mark = false;
 
     private ContentCategories() {}
 
     /**
      * 初始化分类映射，遍历注册表中的所有内容物。
-     * @apiNote 此方法应当仅调用一次。
      */
-    public static void init() {
+    private static void clearMarkAndInit() {
+        if (mark) {return;}
+
         TWRegistries.CONTENT.forEach(content ->
                 CATEGORY_MAP.computeIfAbsent(content.getCategory(),
                 k -> new LinkedHashSet<>()).add(content));
+
+        mark = true;
     }
 
     /**
@@ -28,6 +32,8 @@ public class ContentCategories {
      */
     @NotNull
     public static Set<Content> getByCategory(@NotNull String category) {
+        clearMarkAndInit();
+
         Set<Content> contents = CATEGORY_MAP.get(category);
         if (contents == null) {
             return Collections.emptySet();
@@ -42,6 +48,8 @@ public class ContentCategories {
      */
     @NotNull
     public static Set<String> getCategories() {
+        clearMarkAndInit();
+
         return Collections.unmodifiableSet(CATEGORY_MAP.keySet());
     }
 }

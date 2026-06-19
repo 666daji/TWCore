@@ -1,5 +1,7 @@
 package org.twcore.api;
 
+import org.twcore.api.event.TwCoreClientRegisterEvent;
+
 /**
  * <h1>TW Core 客户端专属注册入口</h1>
  * <p>
@@ -43,24 +45,21 @@ package org.twcore.api;
  * <h2>平台集成方式</h2>
  * <h3>Fabric</h3>
  * <p>
- * 在 {@code fabric.mod.json} 中声明自定义入口点 {@code "tw-core:register_client"}，
- * 将实现类列在其下。Core 的 {@code ClientModInitializer} 会扫描并调用。
+ * 使用 {@link TwCoreClientRegisterEvent} 的
+ * {@code TW_CORE_CLIENT_REGISTRAR} 事件注册回调。Core 会在
+ * {@code MinecraftClient} 构造完成后触发该事件（紧随通用注册之后）。
  * </p>
  * <pre>{@code
- * {
- *   "entrypoints": {
- *     "main": ["com.example.MyMod"],
- *     "client": ["com.example.MyModClient"],
- *     "tw-core:register": ["com.example.MyCommonRegistrar"],
- *     "tw-core:register_client": ["com.example.MyClientRegistrar"]
- *   }
- * }
+ * TwCoreClientRegisterEvent.TW_CORE_CLIENT_REGISTRAR.register(() -> {
+ *     // 你的客户端注册逻辑
+ * });
  * }</pre>
  *
  * <h3>Forge / NeoForge</h3>
  * <p>
- * 子模组在自己的客户端事件处理类中监听 {@code TwCoreClientRegisterEvent}，
- * 在该事件处理方法内调用本接口的实现。Core 在 {@code FMLClientSetupEvent}
+ * 在模组主类或任何有事件监听能力的类中，编写一个监听
+ * {@link TwCoreClientRegisterEvent} 的方法，并在该方法内调用
+ * 本接口的实现。Core 会在 {@code FMLClientSetupEvent}
  * 阶段触发该事件。
  * </p>
  * <pre>{@code
@@ -70,7 +69,7 @@ package org.twcore.api;
  *
  *     @SubscribeEvent
  *     public void onTwCoreClientRegister(TwCoreClientRegisterEvent event) {
- *         clientRegistrar.registerClient();
+ *         // 你的客户端注册逻辑
  *     }
  * }
  * }</pre>

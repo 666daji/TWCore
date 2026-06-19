@@ -2,6 +2,7 @@ package org.twcore.blockpile;
 
 import net.minecraft.block.Block;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -201,6 +202,12 @@ public class CubeBlockPileManager {
         }
     }
 
+    public static void onWorldStart(MinecraftServer server, World world) {
+        if (!world.isClient) {
+            CubeBlockPileManager.loadWorldCubeBlockPiles((ServerWorld) world);
+        }
+    }
+
     /**
      * 服务器关闭时清理
      */
@@ -329,8 +336,7 @@ public class CubeBlockPileManager {
                         LOGGER.error("Error disposing CubeBlockPile at {}", cubeBlockPile.getMasterPos(), e);
                     }
                 }
-                int count = worldMap.size();
-                return count;
+                return worldMap.size();
             }
             return 0;
         }

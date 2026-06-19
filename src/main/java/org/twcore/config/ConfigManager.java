@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import net.fabricmc.loader.api.FabricLoader;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.twcore.TWCore;
@@ -69,7 +70,7 @@ import java.util.function.Function;
  */
 public final class ConfigManager {
     private static final Logger LOGGER = TWCore.LOGGER;
-    private static final Path BASE_DIR = Path.of("config", "tenacious-wonder");
+    private static final Path BASE_DIR = FabricLoader.getInstance().getConfigDir().resolve("tenacious-wonder");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     // 内部键，标识一个配置 (modId, configName)
@@ -121,8 +122,7 @@ public final class ConfigManager {
 
     /**
      * 加载所有 {@link ConfigSide#COMMON} 配置。
-     * 应在双端通用注册全部完成后调用（例如 Fabric 的 {@code ModInitializer}
-     * 结尾，Forge 的 {@code FMLCommonSetupEvent} 中）。
+     * 应在双端通用注册全部完成后调用。
      */
     public static synchronized void loadCommon() {
         loadBySide(ConfigSide.COMMON);
@@ -130,9 +130,7 @@ public final class ConfigManager {
 
     /**
      * 加载所有 {@link ConfigSide#CLIENT} 配置。
-     * 仅在物理客户端调用，应在客户端专属注册完成后执行
-     * （例如 Fabric 的 {@code ClientModInitializer} 结尾，
-     * Forge 的 {@code FMLClientSetupEvent} 中）。
+     * 仅在物理客户端调用，应在客户端专属注册完成后执行。
      */
     public static synchronized void loadClient() {
         loadBySide(ConfigSide.CLIENT);
@@ -211,9 +209,7 @@ public final class ConfigManager {
                 if (fileVersion == effectiveVersion) {
                     // 版本匹配，直接解析
                     DataResult<T> result = type.codec().parse(JsonOps.INSTANCE, obj);
-                    Optional<T> parsed = result.resultOrPartial(error -> {
-                        LOGGER.error("Failed to parse config '{}': {}", key, error);
-                    });
+                    Optional<T> parsed = result.resultOrPartial(error -> LOGGER.error("Failed to parse config '{}': {}", key, error));
                     if (parsed.isPresent()) {
                         data = parsed.get();
                     }
