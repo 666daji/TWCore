@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "tw-core",
   "version": "${version}",
-  "name": "TW`s Core",
-  "description": "Tenacious Wonder ",
-  "authors": ["The bridge between Tenacious Wonder mods"],
+  "name": "TW's Core",
+  "description": "The bridge between Tenacious Wonder mods.",
+  "authors": ["Tenacious Wonder"],
   "contact": {
     "homepage": "https://modrinth.com/mod/tw-core",
     "sources": "https://github.com/666daji/TWCore",
