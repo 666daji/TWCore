@@ -3,7 +3,7 @@
   "id": "tw-core",
   "version": "${version}",
   "name": "TW's Core",
-  "description": "The bridge between Tenacious Wonder mods",
+  "description": "The bridge between Tenacious Wonder mods.",
   "authors": ["Tenacious Wonder"],
   "contact": {
     "homepage": "https://modrinth.com/mod/tw-core",
