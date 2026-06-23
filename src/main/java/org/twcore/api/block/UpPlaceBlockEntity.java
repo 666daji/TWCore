@@ -163,17 +163,19 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Containe
      * </p>
      *
      * @param stack 要添加的物品堆栈
+     * @param hit
      * @return 操作结果，成功返回{@link InteractionResult#SUCCESS}，失败返回{@link InteractionResult#FAIL}
      */
-    public abstract Result tryAddItem(ItemStack stack);
+    public abstract Result tryAddItem(ItemStack stack, BlockHitResult hit);
 
     /**
      * 尝试从容器中取出物品。
      *
      * @param player 执行取出操作的玩家
+     * @param hit
      * @return 操作结果，成功返回{@link InteractionResult#SUCCESS}，失败返回{@link InteractionResult#FAIL}
      */
-    public abstract Result tryFetchItem(Player player);
+    public abstract Result tryFetchItem(Player player, BlockHitResult hit);
 
     /**
      * 当物品成功取出时调用的回调方法。
@@ -256,8 +258,8 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Containe
      * 该方法仅在 {@link UpPlaceBlock.UpSounds#DYNAMIC} 模式下被调用。
      * 默认实现：
      * <ul>
-     *     <li>如果物品是 {@link net.minecraft.world.item.BlockItem}，则返回其对应方块的放置/破坏音效。</li>
-     *     <li>否则使用 {@link UpPlaceBlock.UpSounds#DYNAMIC} 中预置的兜底音效（石头音效）。</li>
+     *     <li>从{@link Item2BlockSounds}获取其对应音效组。</li>
+     *     <li>否则使用 {@link UpPlaceBlock.UpSounds#DYNAMIC} 中预置的兜底音效。</li>
      * </ul>
      * 子类可以重写此方法以实现完全自定义的动态音效选择逻辑。
      *

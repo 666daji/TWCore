@@ -1,7 +1,6 @@
 package org.twcore.api;
 
-import org.twcore.config.ConfigInfluencer;
-import org.twcore.config.ConfigSide;
+import org.twcore.api.event.TwCoreClientRegisterEvent;
 
 /**
  * <h1>TW Core 客户端专属注册入口</h1>
@@ -16,7 +15,7 @@ import org.twcore.config.ConfigSide;
  * 在 {@link #registerClient()} 方法内，子模组通常需要完成：
  * <ul>
  *     <li>通过 {@code TwConfig.forMod(modId).registerClientConfig()}
- *         注册标记为 {@link ConfigSide#CLIENT} 的配置；</li>
+ *         注册标记为 {@link org.twcore.config.ConfigSide#CLIENT} 的配置；</li>
  *     <li>通过 {@code TwConfig.forMod(modId).addDefaultOverride()}
  *         为其他模组的客户端配置提供默认值影响器；</li>
  *     <li>其他纯客户端操作（如注册按键绑定、GUI 工厂等）。</li>
@@ -38,7 +37,7 @@ import org.twcore.config.ConfigSide;
  * <b>强烈建议不要在任何注册逻辑中依赖其他模组的注册顺序或状态</b>。
  * 跨模组协作（如为其他模组的配置添加默认值）应始终通过
  * {@code TwConfig.addDefaultOverride()} 提交
- * {@link ConfigInfluencer 影响器}，
+ * {@link org.twcore.config.ConfigInfluencer 影响器}，
  * 由目标模组在配置加载时统一处理。这确保了代码在所有注册阶段都健壮且
  * 顺序无关。
  * </p>
@@ -46,24 +45,21 @@ import org.twcore.config.ConfigSide;
  * <h2>平台集成方式</h2>
  * <h3>Fabric</h3>
  * <p>
- * 在 {@code fabric.mod.json} 中声明自定义入口点 {@code "tw-core:register_client"}，
- * 将实现类列在其下。Core 的 {@code ClientModInitializer} 会扫描并调用。
+ * 使用 {@link TwCoreClientRegisterEvent} 的
+ * {@code TW_CORE_CLIENT_REGISTRAR} 事件注册回调。Core 会在
+ * {@code MinecraftClient} 构造完成后触发该事件（紧随通用注册之后）。
  * </p>
  * <pre>{@code
- * {
- *   "entrypoints": {
- *     "main": ["com.example.MyMod"],
- *     "client": ["com.example.MyModClient"],
- *     "tw-core:register": ["com.example.MyCommonRegistrar"],
- *     "tw-core:register_client": ["com.example.MyClientRegistrar"]
- *   }
- * }
+ * TwCoreClientRegisterEvent.TW_CORE_CLIENT_REGISTRAR.register(() -> {
+ *     // 你的客户端注册逻辑
+ * });
  * }</pre>
  *
  * <h3>Forge / NeoForge</h3>
  * <p>
- * 子模组在自己的客户端事件处理类中监听 {@code TwCoreClientRegisterEvent}，
- * 在该事件处理方法内调用本接口的实现。Core 在 {@code FMLClientSetupEvent}
+ * 在模组主类或任何有事件监听能力的类中，编写一个监听
+ * {@link TwCoreClientRegisterEvent} 的方法，并在该方法内调用
+ * 本接口的实现。Core 会在 {@code FMLClientSetupEvent}
  * 阶段触发该事件。
  * </p>
  * <pre>{@code
@@ -73,7 +69,7 @@ import org.twcore.config.ConfigSide;
  *
  *     @SubscribeEvent
  *     public void onTwCoreClientRegister(TwCoreClientRegisterEvent event) {
- *         clientRegistrar.registerClient();
+ *         // 你的客户端注册逻辑
  *     }
  * }
  * }</pre>

@@ -32,7 +32,7 @@ public class ContainerTypes {
         CONTAINER_TYPE.register(modBus);
     }
 
-    public static void initMappings() {
+    public static void initDefaultMappings() {
         // 碗映射
         BowlContainer bowl = (BowlContainer) BOWL.get();
         bowl.registerContentMapping(Contents.MUSHROOM_STEW.get(), Items.MUSHROOM_STEW);
