@@ -34,7 +34,6 @@ public class TWCore {
         cubeBlockPileInit();
 
         // 杂项
-        ContainerTypes.initDefaultMappings();
         cubeBlockPileInit();
         registerDefaultAction();
 
@@ -46,6 +45,7 @@ public class TWCore {
 
         // 初始化逻辑
         ConfigManager.loadCommon();
+        ContainerTypes.initDefaultMappings();
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
