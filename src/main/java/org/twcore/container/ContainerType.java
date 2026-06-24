@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.twcore.content.Content;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * 容器类型抽象基类。
@@ -17,9 +18,9 @@ import java.util.Objects;
  * </p>
  */
 public abstract class ContainerType {
-    private final Item emptyItem;
+    private final Supplier<Item> emptyItem;
     private final int baseCapacity;
-    private final SoundEvent useSound;
+    private final Supplier<SoundEvent> useSound;
 
     /**
      * 创建一个容器类型实例。
@@ -37,11 +38,11 @@ public abstract class ContainerType {
      * 容器设置类。
      */
     public static class ContainerSettings {
-        private final Item emptyItem;
+        private final Supplier<Item> emptyItem;
         private int baseCapacity = 1;
-        private SoundEvent useSound = SoundEvents.BOTTLE_FILL;
+        private Supplier<SoundEvent> useSound = () -> SoundEvents.BOTTLE_FILL;
 
-        public ContainerSettings(Item emptyItem) {
+        public ContainerSettings(Supplier<Item> emptyItem) {
             this.emptyItem = Objects.requireNonNull(emptyItem, "Empty container item cannot be null");
         }
 
@@ -53,7 +54,7 @@ public abstract class ContainerType {
             return this;
         }
 
-        public ContainerSettings setUseSound(@NotNull SoundEvent useSound) {
+        public ContainerSettings setUseSound(@NotNull Supplier<SoundEvent> useSound) {
             this.useSound = Objects.requireNonNull(useSound, "Use sound cannot be null");
             return this;
         }
@@ -61,7 +62,7 @@ public abstract class ContainerType {
 
     @NotNull
     public Item getEmptyItem() {
-        return emptyItem;
+        return emptyItem.get();
     }
 
     public int getBaseCapacity() {
@@ -70,7 +71,7 @@ public abstract class ContainerType {
 
     @NotNull
     public SoundEvent getUseSound() {
-        return useSound;
+        return useSound.get();
     }
 
     /**
@@ -143,7 +144,7 @@ public abstract class ContainerType {
      */
     @NotNull
     public ItemStack createEmptyItemStack(int amount) {
-        return new ItemStack(emptyItem, amount);
+        return new ItemStack(emptyItem.get(), amount);
     }
 
     /**
