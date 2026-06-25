@@ -1,13 +1,15 @@
 package org.twcore.api.event;
 
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.fml.event.IModBusEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 /**
- * <h1>TW Core 通用注册事件（Forge 端）</h1>
+ * <h1>TW Core 通用注册事件（模组总线）</h1>
  * <p>
- * 该事件由 TW Core 在 {@link FMLCommonSetupEvent} 阶段通过
- * {@code MinecraftForge.EVENT_BUS.post(new TwCoreRegisterEvent())} 触发。
+ * 该事件由 TW Core 在 {@link FMLCommonSetupEvent} 阶段
+ * 于模组总线上通过 {@code ModLoader.get().postEvent(new TwCoreRegisterEvent())} 触发。
+ * 本事件实现了 {@link IModBusEvent}，因此只能在模组总线上监听。
  * </p>
  * <p>
  * 所有 TW 子模组应通过监听本事件来执行通用注册逻辑。
@@ -22,7 +24,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
  *     private final TwCoreRegistrar registrar = new MyRegistrar();
  *
  *     public ExampleMod() {
- *         MinecraftForge.EVENT_BUS.register(this);
+ *         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+ *         modEventBus.register(this);
  *     }
  *
  *     @SubscribeEvent
@@ -36,6 +39,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
  *
  * @see org.twcore.api.TwCoreRegistrar
  */
-public class TwCoreRegisterEvent extends Event {
+public class TwCoreRegisterEvent extends Event implements IModBusEvent {
 
 }
