@@ -1,6 +1,7 @@
 package org.twcore.api.process;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -334,7 +335,7 @@ public abstract class AbstractProcess<T> {
      *
      * @param nbt 要写入的NBT复合标签
      */
-    public void writeToNbt(CompoundTag nbt) {
+    public void writeToNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
         if (currentStepId != null) {
             nbt.putString("current_step_id", currentStepId);
         }
@@ -351,7 +352,7 @@ public abstract class AbstractProcess<T> {
      *
      * @param nbt 要读取的NBT复合标签
      */
-    public void readFromNbt(CompoundTag nbt) {
+    public void readFromNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
         if (nbt.contains("current_step_id")) {
             currentStepId = nbt.getString("current_step_id");
         }

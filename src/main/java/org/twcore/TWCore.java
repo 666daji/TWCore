@@ -1,8 +1,8 @@
 package org.twcore;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -29,9 +29,9 @@ public class TWCore {
         IEventBus modEventBus = context.getModEventBus();
         modEventBus.addListener(this::onCommonSetup);
         modEventBus.addListener(this::onClientSetup);
+
         RegistryInit.init(modEventBus);
         register();
-        cubeBlockPileInit();
 
         // 杂项
         cubeBlockPileInit();
@@ -41,7 +41,7 @@ public class TWCore {
     }
 
     public void onCommonSetup(FMLCommonSetupEvent event) {
-        MinecraftForge.EVENT_BUS.post(new TwCoreRegisterEvent());
+        ModLoader.get().postEvent(new TwCoreRegisterEvent());
 
         // 初始化逻辑
         ConfigManager.loadCommon();
@@ -49,7 +49,7 @@ public class TWCore {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
-        MinecraftForge.EVENT_BUS.post(new TwCoreClientRegisterEvent());
+        ModLoader.get().postEvent(new TwCoreClientRegisterEvent());
 
         // 初始化逻辑
         ConfigManager.loadClient();

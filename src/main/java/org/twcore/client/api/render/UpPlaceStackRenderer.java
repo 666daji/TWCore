@@ -236,7 +236,7 @@ public interface UpPlaceStackRenderer {
                         entity.getBlockPos(),
                         entity.getLevel(),
                         matrices,
-                        vertexConsumers.getBuffer(ItemBlockRenderTypes.getChunkRenderType(blockState)),
+                        vertexConsumers.getBuffer(RenderType.cutout()),
                         true,
                         RandomSource.create(),
                         ModelData.EMPTY,
