@@ -1,6 +1,7 @@
 package org.twcore.api;
 
 import org.twcore.api.config.TwConfig;
+import org.twcore.api.event.TwCoreRegisterEvent;
 import org.twcore.config.ConfigType;
 
 /**
@@ -37,24 +38,21 @@ import org.twcore.config.ConfigType;
  *
  * <h3>Fabric</h3>
  * <p>
- * 在模组的 {@code fabric.mod.json} 中声明一个自定义入口点
- * {@code "tw-core:register"}，并将实现类的全限定名列在其下。
- * Fabric Loader 会保证在 Core 的 {@code ModInitializer} 中
- * 扫描并实例化该类。
+ * 使用 {@link TwCoreRegisterEvent} 的
+ * {@code TW_CORE_REGISTRAR} 事件注册回调。Core 会在
+ * {@code MinecraftClient} 或 {@code MinecraftDedicatedServer}
+ * 构造完成后触发该事件。
  * </p>
  * <pre>{@code
- * {
- *   "entrypoints": {
- *     "main": ["com.example.MyMod"],
- *     "tw-core:register": ["com.example.MyRegistrar"]
- *   }
- * }
+ * TwCoreRegisterEvent.TW_CORE_REGISTRAR.register(() -> {
+ *     // 你的注册逻辑
+ * });
  * }</pre>
  *
  * <h3>Forge / NeoForge</h3>
  * <p>
  * 在模组主类或任何有事件监听能力的类中，编写一个监听
- * {@code TwCoreRegisterEvent} 的方法，并在该方法内调用
+ * {@link TwCoreRegisterEvent} 的方法，并在该方法内调用
  * 本接口的实现。Core 会在 {@code FMLCommonSetupEvent}
  * 阶段触发该事件。
  * </p>
@@ -65,7 +63,7 @@ import org.twcore.config.ConfigType;
  *
  *     @SubscribeEvent
  *     public void onTwCoreRegister(TwCoreRegisterEvent event) {
- *         registrar.register();
+ *         // 你的注册逻辑
  *     }
  * }
  * }</pre>

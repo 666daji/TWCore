@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.twcore.api.block.UpPlaceBlock;
 
 import java.util.HashMap;
@@ -211,10 +212,6 @@ public interface UpPlaceStackRenderer {
             Item item = stack.getItem();
             BlockState blockState = Block.byItem(item).defaultBlockState();
 
-            if (blockState == null) {
-                return Blocks.AIR.defaultBlockState();
-            }
-
             // 处理其他方块，检查是否有水平朝向属性
             if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
                 return blockState.setValue(BlockStateProperties.HORIZONTAL_FACING, getFacing());
@@ -233,15 +230,17 @@ public interface UpPlaceStackRenderer {
          * @param blockState 要渲染的方块状态
          */
         public void renderBlockState(BlockState blockState) {
-            if (blockState.getBlock() != Blocks.AIR) {
+            if (blockState.getBlock() != Blocks.AIR && entity.getLevel() != null) {
                 entityContext.getBlockRenderDispatcher().renderBatched(
                         blockState,
                         entity.getBlockPos(),
                         entity.getLevel(),
                         matrices,
-                        vertexConsumers.getBuffer(ItemBlockRenderTypes.getChunkRenderType(blockState)),
+                        vertexConsumers.getBuffer(RenderType.cutout()),
                         true,
-                        RandomSource.create()
+                        RandomSource.create(),
+                        ModelData.EMPTY,
+                        RenderType.cutout()
                 );
             }
         }
@@ -253,18 +252,22 @@ public interface UpPlaceStackRenderer {
          * @param state 占位的方块状态
          */
         public void renderCustomModel(BakedModel model, BlockState state) {
-            entityContext().getBlockRenderDispatcher().getModelRenderer().tesselateBlock(
-                    entity().getLevel(),
-                    model,
-                    state,
-                    entity().getBlockPos(),
-                    matrices(),
-                    vertexConsumers().getBuffer(RenderType.cutout()),
-                    true,
-                    RandomSource.create(),
-                    state.getSeed(entity().getBlockPos()),
-                    OverlayTexture.NO_OVERLAY
-            );
+            if (entity().getLevel() != null) {
+                entityContext().getBlockRenderDispatcher().getModelRenderer().tesselateBlock(
+                        entity().getLevel(),
+                        model,
+                        state,
+                        entity().getBlockPos(),
+                        matrices(),
+                        vertexConsumers().getBuffer(RenderType.cutout()),
+                        true,
+                        RandomSource.create(),
+                        state.getSeed(entity().getBlockPos()),
+                        OverlayTexture.NO_OVERLAY,
+                        ModelData.EMPTY,
+                        RenderType.cutout()
+                );
+            }
         }
 
         /**

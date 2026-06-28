@@ -3,11 +3,11 @@ package org.twcore;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoader;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import org.twcore.api.forgeevent.TwCoreClientRegisterEvent;
+import org.twcore.api.event.TwCoreClientRegisterEvent;
 import org.twcore.config.ConfigManager;
 
 @Mod(value = TWCore.MOD_ID, dist = Dist.CLIENT)
@@ -18,7 +18,7 @@ public class TWsCoreClient {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         // 调用所有子模组注册方法
-        NeoForge.EVENT_BUS.post(new TwCoreClientRegisterEvent());
+        ModLoader.postEvent(new TwCoreClientRegisterEvent());
 
         // 完成初始化逻辑
         ConfigManager.loadClient();

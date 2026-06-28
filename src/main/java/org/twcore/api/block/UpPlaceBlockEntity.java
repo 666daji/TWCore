@@ -166,7 +166,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Containe
      * @param stack 要添加的物品堆栈
      * @return 操作结果，成功返回{@link InteractionResult#SUCCESS}，失败返回{@link InteractionResult#FAIL}
      */
-    public abstract Result tryAddItem(ItemStack stack);
+    public abstract Result tryAddItem(ItemStack stack, BlockHitResult hit);
 
     /**
      * 尝试从容器中取出物品。
@@ -174,7 +174,7 @@ public abstract class UpPlaceBlockEntity extends BlockEntity implements Containe
      * @param player 执行取出操作的玩家
      * @return 操作结果，成功返回{@link InteractionResult#SUCCESS}，失败返回{@link InteractionResult#FAIL}
      */
-    public abstract Result tryFetchItem(Player player);
+    public abstract Result tryFetchItem(Player player, BlockHitResult hit);
 
     /**
      * 当物品成功取出时调用的回调方法。

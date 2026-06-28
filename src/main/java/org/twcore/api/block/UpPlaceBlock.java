@@ -104,7 +104,7 @@ public abstract class UpPlaceBlock extends BaseEntityBlock {
         if (blockEntity instanceof UpPlaceBlockEntity upPlaceBlockEntity) {
             // 尝试取出物品
             if (canFetched(upPlaceBlockEntity, handStack)) {
-                UpPlaceBlockEntity.Result fetchResult = upPlaceBlockEntity.tryFetchItem(player);
+                UpPlaceBlockEntity.Result fetchResult = upPlaceBlockEntity.tryFetchItem(player, hit);
                 if (fetchResult.isAccepted()) {
                     upPlaceBlockEntity.onFetch(state, world, pos, player, hand, hit, fetchResult.opsStacks());
                     return fetchResult.result();
@@ -113,7 +113,7 @@ public abstract class UpPlaceBlock extends BaseEntityBlock {
 
             // 尝试放置物品
             if (canPlace(upPlaceBlockEntity, handStack)) {
-                UpPlaceBlockEntity.Result placeResult = upPlaceBlockEntity.tryAddItem(handStack);
+                UpPlaceBlockEntity.Result placeResult = upPlaceBlockEntity.tryAddItem(handStack, hit);
                 if (placeResult.isAccepted()) {
                     upPlaceBlockEntity.onPlace(state, world, pos, player, hand, hit, handStack, placeResult.opsStacks());
                     return placeResult.result();
