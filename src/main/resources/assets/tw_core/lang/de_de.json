@@ -1,0 +1,21 @@
+{
+  "jade.modName.tw_core": "TW-Kern",
+
+  "content.tw_core.mushroom_stew": "Pilzsuppe",
+  "content.tw_core.beetroot_soup": "Rote-Bete-Suppe",
+  "content.tw_core.rabbit_stew": "Kanincheneintopf",
+
+  "content.tw_core.water": "Wasser",
+  "content.tw_core.milk": "Milch",
+
+  "content.tw_core.honey": "Honig",
+
+  "subtitle.tw_core.soup_fill": "Suppe: Gießen",
+
+  "player_action.add_content": "%s hinzufügen: %s",
+  "player_action.add_item": "%s hinzufügen: %s",
+
+  "modmenu.nameTranslation.tw-core": "TW-Kern",
+  "modmenu.descriptionTranslation.tw-core": "Brücke, die TW-Serie-Mods verbindet",
+  "modmenu.summaryTranslation.tw-core": "Brücke, die TW-Serie-Mods verbindet"
+}

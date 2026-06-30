@@ -1,0 +1,10 @@
+{
+  "soup_fill": {
+    "sounds": [
+      "item/bucket/empty1",
+      "item/bucket/empty2",
+      "item/bucket/empty3"
+    ],
+    "subtitle": "subtitle.tw_core.soup_fill"
+  }
+}
