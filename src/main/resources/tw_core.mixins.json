@@ -3,7 +3,6 @@
   "minVersion": "0.8",
   "package": "org.twcore.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "tw_core.refmap.json",
   "mixins": [
     "ServerPlayerInteractionManagerMixin"
   ],

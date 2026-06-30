@@ -1,0 +1,21 @@
+{
+  "jade.modName.tw_core": "TW 코어",
+
+  "content.tw_core.mushroom_stew": "버섯 스튜",
+  "content.tw_core.beetroot_soup": "비트 수프",
+  "content.tw_core.rabbit_stew": "토끼 스튜",
+
+  "content.tw_core.water": "물",
+  "content.tw_core.milk": "우유",
+
+  "content.tw_core.honey": "꿀",
+
+  "subtitle.tw_core.soup_fill": "수프: 따르기",
+
+  "player_action.add_content": "%s 추가: %s",
+  "player_action.add_item": "%s 추가: %s",
+
+  "modmenu.nameTranslation.tw-core": "TW 코어",
+  "modmenu.descriptionTranslation.tw-core": "TW 시리즈 모드를 연결하는 다리",
+  "modmenu.summaryTranslation.tw-core": "TW 시리즈 모드를 연결하는 다리"
+}
