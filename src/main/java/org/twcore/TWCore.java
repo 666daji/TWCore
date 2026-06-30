@@ -27,7 +27,6 @@ public class TWCore {
         modEventBus.addListener(this::onCommonSetup);
         RegistryInit.init(modEventBus);
         register();
-        cubeBlockPileInit();
 
         // 杂项
         cubeBlockPileInit();
@@ -45,7 +44,7 @@ public class TWCore {
     }
 
     private void register() {
-        TwModManager.IMPL.register(MOD_ID, 1);
+        TwModManager.IMPL.register(MOD_ID, 2);
     }
 
     // ==================== 其他注册逻辑 ====================

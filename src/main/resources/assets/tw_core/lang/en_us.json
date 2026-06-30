@@ -1,0 +1,21 @@
+{
+  "jade.modName.tw_core": "TW Core",
+
+  "content.tw_core.mushroom_stew": "Mushroom Stew",
+  "content.tw_core.beetroot_soup": "Beetroot Soup",
+  "content.tw_core.rabbit_stew": "Rabbit Stew",
+
+  "content.tw_core.water": "Water",
+  "content.tw_core.milk": "Milk",
+
+  "content.tw_core.honey": "Honey",
+
+  "subtitle.tw_core.soup_fill": "Soup: Pouring",
+
+  "player_action.add_content": "Add %s: %s",
+  "player_action.add_item": "Add %s: %s",
+
+  "modmenu.nameTranslation.tw-core": "TW Core",
+  "modmenu.descriptionTranslation.tw-core": "Bridge connecting TW series mods",
+  "modmenu.summaryTranslation.tw-core": "Bridge connecting TW series mods"
+}
