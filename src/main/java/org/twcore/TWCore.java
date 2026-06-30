@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.twcore.api.TwModManager;
 import org.twcore.api.event.TwCoreRegisterEvent;
 import org.twcore.blockpile.CubeBlockPileManager;
+import org.twcore.config.ConfigManager;
 import org.twcore.process.playeraction.PlayerActionFactory;
 import org.twcore.process.playeraction.impl.AddContentPlayerAction;
 import org.twcore.process.playeraction.impl.AddItemPlayerAction;
@@ -40,6 +41,7 @@ public class TWCore {
         ModLoader.postEvent(new TwCoreRegisterEvent());
 
         ContainerTypes.initDefaultMappings();
+        ConfigManager.loadCommon();
     }
 
     private void register() {
